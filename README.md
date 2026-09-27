@@ -1,68 +1,47 @@
-# IBM Hackathon GitHub Project Template
+# Supply Chain Bouncer
 
-This GitHub project template is for IBM Hackathon projects. It includes pre-configured security files to help prevent accidental credential commits and potential account suspension during the hackathon.
+A dependency review assistant for the IBM Bob 2.0 hackathon. The planned workflow compares npm dependency changes, collects static evidence, and uses three Bob investigators to help a developer choose ALLOW, QUARANTINE, or BLOCK. A local CLI gate will evaluate the decision against the reviewed inputs.
 
-## 🚀 Quick Start
+## Current status
 
-1. **Use this template to create your project:**
-   - Click "Use this template" button above and select "Create a new repository"
-   - Name your repository
-   - Click "Create repository"
+Repository setup is complete. The scanner, Bob investigation workflow, reports, and local gate are not implemented yet. GitHub enforcement and signed decisions are optional later extensions.
 
-2. **Clone your new repository:**
+## Development setup
 
-   ```bash
-   git clone https://github.com/HACKATHON-ORG/your-repo-name.git
-   cd your-repo-name
-   ```
+Use Node.js 24 and npm. Open this repository in Bob IDE and sign into your hackathon-provisioned account for Bob work.
 
-3. **Set up environment variables:**
+```text
+git clone https://github.com/AQFardin/supply-chain-bouncer.git
+cd supply-chain-bouncer
+node --version
+npm --version
+```
 
-   ```bash
-   # Copy the example file
-   cp .env.example .env
+The project uses JavaScript ES modules. No package dependencies are declared yet. The `npm run bouncer` and `npm test` scripts are placeholders until the CLI and test files are implemented.
 
-   # Edit .env with your actual credentials
-   # Use your preferred editor (nano, vim, code, etc.)
-   nano .env
-   ```
+## Project structure
 
-4. **Verify .gitignore is working:**
+| Folder | Planned contents |
+|---|---|
+| `src/` | CLI, dependency comparison, evidence collection, reports, and gate |
+| `tests/` | Automated checks for the implemented behavior |
+| `schemas/` | Evidence, investigation, and decision formats |
+| `policy/` | Review rules and reference data |
+| `examples/sample-app/` | Small application used for the demonstration |
+| `fixtures/` | Harmless, clearly labelled test and demonstration inputs |
+| `.bob/agents/` | Investigator role instructions |
+| `.bob/skills/supply-chain-bouncer/` | Reusable Bob investigation workflow |
+| `docs/` | Architecture, evaluation, and submission notes |
+| `bob_sessions/` | Sanitized Bob task-session summary screenshots for submission |
 
-   ```bash
-   # This should NOT show .env file
-   git status
+Empty folders contain `.gitkeep` placeholders so they are retained when the repository is cloned. Remove those placeholders when meaningful files are added.
 
-   # This should confirm .env is ignored
-   git check-ignore -v .env
-   ```
+## Next step
 
-5. **Start developing!**
+Use Bob Plan mode to define the architecture, data contracts, and implementation checklist. Then build the lockfile comparator and evidence collection before adding the investigators, local review menu, and gate.
 
-## 🔒 Security Features
+## Evidence and credentials
 
-This template includes:
+Commit harmless fixtures and sanitized Bob session screenshots. Keep real credentials, private keys, generated dependencies, and build outputs out of Git. Screenshots remain excluded from Bob's context through `.bobignore`, while fixture files remain accessible for review.
 
-- **`.gitignore`** - Prevents committing credentials and live session files
-- **`.bobignore`** - Prevents AI assistants from logging credentials
-- **`.env.example`** - Template for your environment variables
-
-## 📋 Before Every Commit
-
-Always run this checklist:
-
-- [ ] Reviewed `git diff` for sensitive data
-- [ ] No hardcoded API keys or passwords
-- [ ] `.env` file is NOT in staged changes
-- [ ] No files with "credential" or "secret" in name
-- [ ] Used environment variables for all credentials
-
-## 🆘 Need Help?
-
-- Read [SECURITY.md](SECURITY.MD) for detailed guidelines
-- Contact hackathon support through mentor channel
-- Ask in the hackathon Slack workspace
-
----
-
-**Remember:** Security is everyone's responsibility. When in doubt, ask for help!
+Ignore files control file matching; they do not redact secrets pasted into a prompt or printed by a command. The existing `.env.example` contains optional IBM Cloud configuration inherited from the project template; a Cloud API key is not required for this initial local scaffold. See [the security guidelines](SECURITY.MD) before adding credentials.

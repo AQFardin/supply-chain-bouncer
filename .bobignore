@@ -90,9 +90,10 @@ id_dsa
 node_modules/
 .git/
 bob_sessions/
-fixtures/
 dist/
 build/
+
+# Allow Bob to read harmless fixtures for investigation and testing.
 
 # ============================================
 # DO NOT REMOVE ABOVE PATTERNS
