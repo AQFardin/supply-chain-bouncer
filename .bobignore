@@ -86,6 +86,14 @@ id_dsa
 *echo $*API_KEY*
 *printenv*
 
+# Project directory exclusions (to protect credit quota & context)
+node_modules/
+.git/
+bob_sessions/
+fixtures/
+dist/
+build/
+
 # ============================================
 # DO NOT REMOVE ABOVE PATTERNS
 # ============================================

@@ -1,0 +1,22 @@
+{
+  "name": "supply-chain-bouncer",
+  "version": "0.1.0",
+  "description": "Dependency review assistant with IBM Bob subagent orchestration",
+  "main": "src/cli.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/**/*.test.mjs",
+    "bouncer": "node src/cli.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AQFardin/supply-chain-bouncer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AQFardin/supply-chain-bouncer/issues"
+  },
+  "homepage": "https://github.com/AQFardin/supply-chain-bouncer#readme"
+}
