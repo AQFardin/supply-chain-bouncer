@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supply Chain Bouncer — Presentation Deck</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .slide { display: none; }
+    .slide.active { display: flex; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between select-none">
+
+  <!-- Header / Top Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-8 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-blue-500/30">
+        🛡️
+      </div>
+      <div>
+        <h1 class="font-bold text-sm tracking-wide text-white">SUPPLY CHAIN BOUNCER</h1>
+        <p class="text-xs text-slate-400 font-mono">IBM Bob 2.0 Hackathon • Final Presentation</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span id="slide-indicator" class="text-xs font-mono font-medium px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+        Slide 1 of 6
+      </span>
+      <div class="flex items-center gap-1">
+        <button id="prev-btn" onclick="prevSlide()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 text-slate-200 transition">
+          ← Prev
+        </button>
+        <button id="next-btn" onclick="nextSlide()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition shadow-sm">
+          Next →
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress Bar -->
+  <div class="w-full bg-slate-900 h-1">
+    <div id="progress-bar" class="bg-blue-500 h-1 transition-all duration-300" style="width: 16.66%;"></div>
+  </div>
+
+  <!-- Main Slide Container -->
+  <main class="flex-1 flex items-center justify-center p-8 max-w-6xl mx-auto w-full">
+
+    <!-- SLIDE 1: Problem & Motivation -->
+    <section class="slide active flex-col gap-6 w-full animate-fadeIn" data-title="Problem & Motivation">
+      <div class="space-y-2">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">01 / The Core Problem</span>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">Defending the Supply Chain with IBM Bob 2.0</h2>
+        <p class="text-slate-400 text-lg">Why traditional vulnerability scanners fail against day-zero malicious dependencies.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-3">
+          <div class="text-red-400 text-2xl font-bold">⚠️ The Blind Spot</div>
+          <h3 class="font-semibold text-white text-base">Zero-Day Attacks</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Conventional SCA tools (Snyk, Dependabot) rely on published CVE databases. Newly published malicious packages or poisoned versions have <strong>zero CVEs</strong> when first merged.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-3">
+          <div class="text-amber-400 text-2xl font-bold">⚡ The Attack Vector</div>
+          <h3 class="font-semibold text-white text-base">Silent Install Scripts</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Innocent-looking packages run <code>preinstall</code> and <code>postinstall</code> hooks during <code>npm install</code>, exfiltrating cloud secrets (<code class="text-amber-300">AWS_SECRET_ACCESS_KEY</code>) to remote endpoints.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-blue-900/50 rounded-xl p-6 space-y-3 bg-blue-950/20">
+          <div class="text-blue-400 text-2xl font-bold">🛡️ The Solution</div>
+          <h3 class="font-semibold text-white text-base">Supply Chain Bouncer</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            A zero-execution review system coordinating <strong>3 parallel IBM Bob subagents</strong>, interactive developer review, and a deterministic gate bound to cryptographic input digests.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-4 p-4 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs text-slate-400 font-mono">
+        <span>🔒 Zero Untrusted Code Execution</span>
+        <span>⚡ 100% In-Memory Static Inspection</span>
+        <span>📦 Zero External Dependencies</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Workflow -->
+    <section class="slide flex-col gap-6 w-full animate-fadeIn" data-title="End-to-End Workflow">
+      <div class="space-y-2">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">02 / End-to-End Workflow</span>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">The Review, Gate & Repair Lifecycle</h2>
+        <p class="text-slate-400 text-lg">From pull request dependency diff to autonomous remediation in five steps.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+          <div class="space-y-2">
+            <span class="text-xs font-mono font-bold text-blue-400">STEP 1</span>
+            <h4 class="font-semibold text-white text-sm">Static Scan</h4>
+            <p class="text-xs text-slate-400">In-memory lockfile v3 comparator collects evidence without running package code.</p>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500 mt-3">evidence.json</span>
+        </div>
+
+        <div class="bg-slate-900 border border-blue-800 rounded-xl p-5 flex flex-col justify-between bg-blue-950/20">
+          <div class="space-y-2">
+            <span class="text-xs font-mono font-bold text-blue-400">STEP 2</span>
+            <h4 class="font-semibold text-white text-sm">Bob Subagents</h4>
+            <p class="text-xs text-slate-300">3 parallel subagents (Typosquat, Provenance, Behavior) evaluate evidence.</p>
+          </div>
+          <span class="text-[10px] font-mono text-blue-400 mt-3">findings.json</span>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+          <div class="space-y-2">
+            <span class="text-xs font-mono font-bold text-blue-400">STEP 3</span>
+            <h4 class="font-semibold text-white text-sm">Human Review</h4>
+            <p class="text-xs text-slate-400">Developer selects ALLOW / QUARANTINE / BLOCK in terminal menu.</p>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500 mt-3">decision.json</span>
+        </div>
+
+        <div class="bg-slate-900 border border-red-900/50 rounded-xl p-5 flex flex-col justify-between bg-red-950/10">
+          <div class="space-y-2">
+            <span class="text-xs font-mono font-bold text-red-400">STEP 4</span>
+            <h4 class="font-semibold text-white text-sm">Local Gate</h4>
+            <p class="text-xs text-slate-400">Evaluates policy & input hashes. BLOCKS malicious code (Exit 4).</p>
+          </div>
+          <span class="text-[10px] font-mono text-red-400 mt-3">Exit Code 4</span>
+        </div>
+
+        <div class="bg-slate-900 border border-emerald-900/50 rounded-xl p-5 flex flex-col justify-between bg-emerald-950/10">
+          <div class="space-y-2">
+            <span class="text-xs font-mono font-bold text-emerald-400">STEP 5</span>
+            <h4 class="font-semibold text-white text-sm">Bob Repair</h4>
+            <p class="text-xs text-slate-300">Bob strips package, rescan passes gate with verified release marker.</p>
+          </div>
+          <span class="text-[10px] font-mono text-emerald-400 mt-3">Exit Code 0</span>
+        </div>
+      </div>
+
+      <div class="mt-4 p-4 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-400 leading-relaxed">
+        💡 <strong>Key Design Principle:</strong> Separation of Concerns — Deterministic code collects facts; IBM Bob interprets and reasons; the human makes the policy decision; the local gate enforces cryptographically; and Bob autonomously fixes the pull request.
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Architecture & Security Invariants -->
+    <section class="slide flex-col gap-6 w-full animate-fadeIn" data-title="Architecture & Invariants">
+      <div class="space-y-2">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">03 / Architecture & Invariants</span>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">Security Invariants & Threat Boundaries</h2>
+        <p class="text-slate-400 text-lg">Engineered for defense-in-depth with zero external runtime dependencies.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">🛡️</span>
+            <h3 class="font-semibold text-white text-base">Zero Target Code Execution</h3>
+          </div>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            All inspection happens on static text buffers and AST parsing. Lifecycle hooks, binaries, and package scripts are strictly treated as untrusted data and never invoked.
+          </p>
+          <div class="pt-2 border-t border-slate-800">
+            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wide">Decompression Defense</h4>
+            <p class="text-xs text-slate-400 mt-1">Guards against zip bombs via <code>maxOutputLength</code>, rejects directory traversal (<code>../</code>), and rejects archive symlinks.</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">🔐</span>
+            <h3 class="font-semibold text-white text-base">Cryptographic Input Binding</h3>
+          </div>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Decisions are permanently bound to a fixed-order SHA-256 array of input digests (base/head manifests, lockfiles, policy rules, scanner release code, and evidence).
+          </p>
+          <div class="pt-2 border-t border-slate-800">
+            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wide">Tamper Detection</h4>
+            <p class="text-xs text-slate-400 mt-1">Altering even 1 whitespace character in an approved lockfile invalidates approval and causes the gate to fail closed (Exit code 2).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-blue-950/20 border border-blue-900/40 rounded-xl p-4 flex items-center justify-between text-xs text-slate-300">
+        <div><strong>Zero External Dependencies:</strong> 100% built on Node.js v24 LTS built-in modules to eliminate scanner poisoning.</div>
+        <span class="px-2.5 py-1 rounded bg-blue-600/30 text-blue-300 font-mono text-[11px]">0 dependencies</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Deep Bob Integration -->
+    <section class="slide flex-col gap-6 w-full animate-fadeIn" data-title="IBM Bob Integration">
+      <div class="space-y-2">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">04 / IBM Bob 2.0 Integration</span>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">Leveraging the Full Agentic Power of Bob</h2>
+        <p class="text-slate-400 text-lg">Multi-agent orchestration and autonomous remediation beyond simple autocomplete.</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mt-2">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-800/60 border-b border-slate-700 text-slate-300 font-mono">
+            <tr>
+              <th class="p-3.5">Bob Capability</th>
+              <th class="p-3.5">How It Is Utilized in Supply Chain Bouncer</th>
+              <th class="p-3.5">Evidence in Repo</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-400">
+            <tr>
+              <td class="p-3.5 font-semibold text-white font-mono">Plan Mode</td>
+              <td class="p-3.5">Architectural blueprints, security threat modeling, and implementation checklists.</td>
+              <td class="p-3.5 font-mono text-blue-400">docs/architecture.md</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-semibold text-white font-mono">Parallel Subagents</td>
+              <td class="p-3.5">3 concurrent specialized agents: Typosquat Detective, Provenance Auditor, Behavior Analyst.</td>
+              <td class="p-3.5 font-mono text-blue-400">.bob/agents/*.md</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-semibold text-white font-mono">Custom Skills</td>
+              <td class="p-3.5">Repeatable investigation workflow defined in <code>SKILL.md</code>.</td>
+              <td class="p-3.5 font-mono text-blue-400">.bob/skills/</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-semibold text-white font-mono">Slash Commands</td>
+              <td class="p-3.5">One-touch developer invocation via <code>/investigate &lt;path&gt;</code>.</td>
+              <td class="p-3.5 font-mono text-blue-400">.bob/commands/</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-semibold text-white font-mono">Agent Mode Repair</td>
+              <td class="p-3.5">Autonomous candidate code remediation, lockfile v3 sync, and clean diff generation.</td>
+              <td class="p-3.5 font-mono text-blue-400">bob_sessions/</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs text-slate-400 font-mono">
+        <span>📸 Real task-session consumption screenshots saved in <code>bob_sessions/</code></span>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Measured Results -->
+    <section class="slide flex-col gap-6 w-full animate-fadeIn" data-title="Measured Demo Results">
+      <div class="space-y-2">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">05 / Measured Demo Results</span>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">Empirical Evaluation & Performance</h2>
+        <p class="text-slate-400 text-lg">Measured latency, exit codes, and test verification across all scenarios.</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mt-2">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-800/60 border-b border-slate-700 text-slate-300 font-mono">
+            <tr>
+              <th class="p-3">Scenario / Case</th>
+              <th class="p-3">Description</th>
+              <th class="p-3">Result / Exit Code</th>
+              <th class="p-3">Measured Latency</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-400">
+            <tr>
+              <td class="p-3 font-semibold text-white">Suspicious Fixture</td>
+              <td class="p-3">Detects lifecycle script, env access, execSync</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-mono text-[11px]">QUARANTINE</span></td>
+              <td class="p-3 font-mono text-slate-300">16.2 ms</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">Bob 3-Subagents</td>
+              <td class="p-3">Concurrent reasoning across 3 roles</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-red-950 text-red-300 font-mono text-[11px]">BLOCK Recommended</span></td>
+              <td class="p-3 font-mono text-slate-300">~75 s</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">Gate BLOCK</td>
+              <td class="p-3">Human BLOCK enforces release hold</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-red-950 text-red-300 font-mono text-[11px]">Exit Code 4 (Marker Withheld)</span></td>
+              <td class="p-3 font-mono text-slate-300">48.2 ms</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">Stale Input Defense</td>
+              <td class="p-3">Modified lockfile whitespace invalidates approval</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-mono text-[11px]">Exit Code 2 (Stale Approval)</span></td>
+              <td class="p-3 font-mono text-slate-300">41.6 ms</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">Repaired Candidate</td>
+              <td class="p-3">Bob strips package, gate authorizes release</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono text-[11px]">Exit Code 0 (Marker Created)</span></td>
+              <td class="p-3 font-mono text-slate-300">51.8 ms</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-white">Acceptance Suite</td>
+              <td class="p-3">80 automated unit, schema & gate tests</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono text-[11px]">80 Tests Passed (0 Failures)</span></td>
+              <td class="p-3 font-mono text-slate-300">2.93 s</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-3.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-xs text-emerald-300 font-mono">
+        ✔ All CLI commands complete in &lt;60ms. Verified with 80 tests in docs/evaluation.md.
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Limitations & Roadmap -->
+    <section class="slide flex-col gap-6 w-full animate-fadeIn" data-title="Limitations & Roadmap">
+      <div class="space-y-2">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">06 / Limitations & Roadmap</span>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">Security Disclosures & Future Roadmap</h2>
+        <p class="text-slate-400 text-lg">Honest engineering disclosures and path to enterprise production readiness.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-3">
+          <h3 class="font-semibold text-white text-base">Current Operating Boundaries</h3>
+          <ul class="text-xs text-slate-400 space-y-2 list-disc list-inside leading-relaxed">
+            <li><strong>Mode Declaration:</strong> Runs in explicitly declared <code>trusted-local-demo</code> mode (assumes trusted developer workspace).</li>
+            <li><strong>Static Analysis Scope:</strong> Flags suspicious code syntax (e.g. <code>execSync</code>, <code>process.env</code>), but cannot decrypt dynamic runtime-fetched payloads without sandboxing.</li>
+            <li><strong>Advisory AI:</strong> Subagents cannot bypass hard integrity violations or approve dependencies without human authorization.</li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900 border border-blue-900/40 rounded-xl p-6 space-y-3 bg-blue-950/10">
+          <h3 class="font-semibold text-blue-300 text-base">Enterprise Production Roadmap</h3>
+          <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside leading-relaxed">
+            <li><strong>Cryptographic Decision Signing:</strong> Asymmetric Ed25519 reviewer keypairs signed via Node.js crypto.</li>
+            <li><strong>Remote GitHub Actions Gate:</strong> Automated pull request enforcement with branch protection checks (<code>supply-chain-bouncer/gate</code>).</li>
+            <li><strong>Live Sigstore/SLSA Verification:</strong> Native adapter querying npm's public provenance transparency logs.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-blue-600 text-white text-center font-medium text-sm shadow-lg shadow-blue-500/20">
+        Ready for judging & submission on GitHub: <span class="font-mono underline">AQFardin/supply-chain-bouncer</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Navigation -->
+  <footer class="border-t border-slate-800 bg-slate-900/40 px-8 py-3 flex items-center justify-between text-xs text-slate-500 font-mono">
+    <span>Use [←] / [→] keys or Click to navigate</span>
+    <span class="text-slate-400">IBM Bob 2.0 Hackathon • Supply Chain Bouncer</span>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const indicator = document.getElementById('slide-indicator');
+    const progressBar = document.getElementById('progress-bar');
+
+    function updateSlide() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active', idx === currentSlide);
+      });
+      indicator.textContent = `Slide ${currentSlide + 1} of ${slides.length}`;
+      progressBar.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+  </script>
+</body>
+</html>
