@@ -5,5 +5,5 @@
   "decision": "ALLOW",
   "reason": "Suspicious package mock-telemetry-reporter removed by Bob; candidate dependencies are clean and verified.",
   "reviewerLabel": "lead-security-reviewer",
-  "createdAt": "2026-09-27T13:47:58.076Z"
+  "createdAt": "2026-09-27T14:52:48.940Z"
 }

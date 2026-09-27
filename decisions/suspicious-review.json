@@ -3,7 +3,7 @@
   "mode": "trusted-local-demo",
   "subjectDigest": "8c25337c586380ee70dd7aa67bb9c9ead5790defaf62183485523ac9ca6dfd27",
   "decision": "BLOCK",
-  "reason": "Suspicious install script with env var harvesting and network exfiltration detected by Bob Behavior Analyst.",
+  "reason": "Suspicious postinstall script with env harvesting and exfil.",
   "reviewerLabel": "lead-security-reviewer",
-  "createdAt": "2026-09-27T13:27:49.074Z"
+  "createdAt": "2026-09-27T14:51:04.474Z"
 }

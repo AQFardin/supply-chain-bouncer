@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
   "evidencePath": "reports/demo/repaired-fixture/evidence.json",
-  "generatedAt": "2026-09-27T13:38:00.000Z",
+  "generatedAt": "2025-07-16T00:00:00.000Z",
   "investigations": [
     {
       "schemaVersion": "1.0",
@@ -10,9 +10,22 @@
       "role": "typosquat-detective",
       "status": "complete",
       "recommendation": "ALLOW",
-      "findings": [],
+      "findings": [
+        {
+          "id": "TYP-001",
+          "evidenceIds": ["evidence.packages[node_modules/picocolors]"],
+          "severity": "low",
+          "confidence": "high",
+          "observation": "No packages with changeType 'added' or 'changed' were present in the evidence bundle. The single package entry (picocolors 1.1.1) has changeType 'unchanged' and is therefore outside the scope of typosquat evaluation.",
+          "interpretation": "There are no added or changed packages to evaluate for typosquatting. The scope of this investigation is empty. No name-similarity analysis was required or performed.",
+          "benignExplanation": "The lock-file diff produced no new or modified package introductions; all resolved packages were already present at the same version, so no opportunity for a typosquat introduction exists in this change set.",
+          "suggestedAction": "No action required. Continue normal CI pipeline."
+        }
+      ],
       "unknowns": [
-        "No added or changed packages in candidate diff; no typosquatting signals detected."
+        "No added or changed packages were present; name-similarity analysis against the popular-package corpus was not exercised for this run.",
+        "Runtime dynamic effects were not executed or observed (inherited from evidence bundle).",
+        "Full cryptographic npm provenance was not verified (adapter extension pending) (inherited from evidence bundle)."
       ]
     },
     {
@@ -21,9 +34,23 @@
       "role": "provenance-auditor",
       "status": "complete",
       "recommendation": "ALLOW",
-      "findings": [],
+      "findings": [
+        {
+          "id": "PA-001",
+          "evidenceIds": ["evidence.packages[node_modules/picocolors]"],
+          "severity": "low",
+          "confidence": "high",
+          "observation": "picocolors 1.1.1 has changeType 'unchanged' — version and integrity hash are identical to the previous lockfile entry (sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegN536lNzk469YN14WOMVL62n30R6U8FL08HT8MFHg==). No provenance audit is required for unchanged packages.",
+          "interpretation": "No added or changed packages are present in this evidence bundle. The single package entry has not moved versions and its integrity hash has not changed, meaning there is no new artifact to verify provenance for. No registry source entries or observations were collected, consistent with an unchanged package scan. There are no integrity mismatches, unsupported sources, suspicious publish timestamps, or prompt-injection indicators to act on.",
+          "benignExplanation": "The lockfile diff contained no additions or upgrades; picocolors 1.1.1 was already present and its lockfile entry is bit-for-bit identical to the prior state.",
+          "suggestedAction": "No action required. Continue monitoring for any future version change to this package, at which point a full provenance audit (registry source, integrity hash comparison, publish timestamp, maintainer continuity) should be performed."
+        }
+      ],
       "unknowns": [
-        "No added or changed packages in candidate diff; baseline picocolors@1.1.1 is unmodified."
+        "NPM provenance attestation verification (Sigstore/SLSA) was not performed — no adapter is available to query the npm attestations API. Attestation presence and validity are unknown for picocolors 1.1.1.",
+        "Maintainer count history for picocolors was not checked — no live registry query was made. A drop in maintainer count or ownership transfer cannot be ruled out through this evidence bundle alone.",
+        "Runtime dynamic effects were not executed or observed (inherited from evidence bundle).",
+        "Full cryptographic npm provenance was not verified (adapter extension pending) (inherited from evidence bundle)."
       ]
     },
     {
@@ -32,9 +59,21 @@
       "role": "behavior-analyst",
       "status": "complete",
       "recommendation": "ALLOW",
-      "findings": [],
+      "findings": [
+        {
+          "id": "BA-001",
+          "evidenceIds": ["evidence.packages[node_modules/picocolors]"],
+          "severity": "low",
+          "confidence": "high",
+          "observation": "Package picocolors 1.1.1 has changeType 'unchanged' — version and integrity hash are identical to the previous lockfile entry. No install scripts, lifecycle hooks, or behavioral observations are present.",
+          "interpretation": "There are no added or changed packages in this evidence bundle requiring behavioral analysis. The sole package (picocolors 1.1.1) is unchanged, carries no install scripts (hasInstallScript: false, scripts: null), and no scanner observations were recorded. No exfiltration signals, obfuscation indicators, dynamic execution patterns, environment-variable access, network operations, or prompt-injection attempts were detected.",
+          "benignExplanation": "Unchanged package with matching integrity. Static behavioral analysis scope is empty; no risk signals exist to evaluate.",
+          "suggestedAction": "No action required. Continue normal pipeline processing."
+        }
+      ],
       "unknowns": [
-        "Candidate contains zero lifecycle scripts, network operations, or child process executions."
+        "Runtime dynamic effects were not executed or observed — static analysis cannot rule out behavior triggered only at import time or under specific runtime conditions.",
+        "Full cryptographic npm provenance was not verified (adapter extension pending) — runtime behavior of any future version cannot be pre-emptively assessed from this snapshot."
       ]
     }
   ],

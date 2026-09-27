@@ -3,8 +3,8 @@
   "purpose": "supply-chain-bouncer-local-review-v1",
   "mode": "trusted-local-demo",
   "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
-  "reviewDigest": "8e37f82c546a11e767e7182648cd0f54b8bc931f36201b0be1824b965578ed8d",
-  "decisionDigest": "b1bed55763385b66e868f59ad90789343740f0576664a0ad89f9ffb8a6025359",
+  "reviewDigest": "3a917915831c7987f7c31dd0691444e51f196b1433e90d3779337dd5e2a85cf0",
+  "decisionDigest": "da36d109a34e2b7fb747d88a3b008796a6331ae33b63aace18ad550856153fb1",
   "entries": [
     [
       "contract",
@@ -76,7 +76,7 @@
     ],
     [
       "run:findings.json",
-      "57685f83dae0b157ab6eb25ec86386e8465d089848f9a7ca74404d56a246462a"
+      "59311c13b268418cfd458bc92c9f26521aa71671e6299c30669d0b6b62900bae"
     ],
     [
       "fixture:files",
