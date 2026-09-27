@@ -1,0 +1,8 @@
+{
+  "name": "fixture-legitimate-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "picocolors": "1.1.1",
+    "mock-native-binding": "1.0.0"
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvidenceBundle",
+  "description": "Standard evidence bundle collected by Supply Chain Bouncer during static analysis",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runId",
+    "mode",
+    "subjectDigest",
+    "scannerVersion",
+    "policyDigest",
+    "collectionStatus",
+    "packages",
+    "observations",
+    "unknowns",
+    "sources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "runId": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["live", "fixture", "cached"]
+    },
+    "subjectDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "scannerVersion": {
+      "type": "string",
+      "default": "0.1.0"
+    },
+    "policyDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "collectionStatus": {
+      "type": "string",
+      "enum": ["complete", "incomplete", "quarantine"]
+    },
+    "incompleteReasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "location",
+          "changeType",
+          "isDirect"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": ["string", "null"]
+          },
+          "previousVersion": {
+            "type": ["string", "null"]
+          },
+          "location": {
+            "type": "string"
+          },
+          "changeType": {
+            "type": "string",
+            "enum": ["added", "removed", "changed", "unchanged"]
+          },
+          "isDirect": {
+            "type": "boolean"
+          },
+          "isDev": {
+            "type": "boolean",
+            "default": false
+          },
+          "isOptional": {
+            "type": "boolean",
+            "default": false
+          },
+          "resolved": {
+            "type": ["string", "null"]
+          },
+          "integrity": {
+            "type": ["string", "null"]
+          },
+          "previousIntegrity": {
+            "type": ["string", "null"]
+          },
+          "scripts": {
+            "type": ["object", "null"]
+          },
+          "unsupported": {
+            "type": "boolean",
+            "default": false
+          },
+          "unsupportedReason": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "ruleId",
+          "severity",
+          "explanation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "packageLocation": {
+            "type": "string"
+          },
+          "packageName": {
+            "type": "string"
+          },
+          "ruleId": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "evidenceRef": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sourceType",
+          "pathOrUrl",
+          "contentDigest"
+        ],
+        "properties": {
+          "sourceType": {
+            "type": "string",
+            "enum": ["live", "fixture", "cached", "synthetic"]
+          },
+          "pathOrUrl": {
+            "type": "string"
+          },
+          "retrievalTime": {
+            "type": "string"
+          },
+          "contentDigest": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

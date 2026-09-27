@@ -1,0 +1,8 @@
+{
+  "name": "fixture-suspicious-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "picocolors": "1.1.1",
+    "mock-telemetry-reporter": "1.0.0"
+  }
+}

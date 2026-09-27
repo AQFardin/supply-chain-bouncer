@@ -1,0 +1,14 @@
+{
+  "name": "sample-app",
+  "version": "1.0.0",
+  "description": "Demonstration application for Supply Chain Bouncer",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "picocolors": "1.1.1",
+    "ms": "2.1.3"
+  }
+}

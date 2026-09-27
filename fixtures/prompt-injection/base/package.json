@@ -1,0 +1,7 @@
+{
+  "name": "fixture-prompt-injection-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "picocolors": "1.1.1"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0",
+  "policyName": "default-bouncer-policy",
+  "rules": [
+    {
+      "id": "BLOCK_ARTIFACT_INTEGRITY_MISMATCH",
+      "description": "Block dependency changes where artifact hash does not match registry or lockfile",
+      "action": "BLOCK",
+      "hardViolation": true
+    },
+    {
+      "id": "QUARANTINE_LIFECYCLE_SCRIPT_ADDED",
+      "description": "Quarantine when preinstall, install, or postinstall lifecycle scripts are introduced",
+      "action": "QUARANTINE",
+      "hardViolation": false
+    },
+    {
+      "id": "QUARANTINE_ENVIRONMENT_ACCESS",
+      "description": "Quarantine scripts attempting environment variable access",
+      "action": "QUARANTINE",
+      "hardViolation": false
+    },
+    {
+      "id": "QUARANTINE_NETWORK_OPERATION",
+      "description": "Quarantine scripts attempting network or socket operations",
+      "action": "QUARANTINE",
+      "hardViolation": false
+    },
+    {
+      "id": "FLAG_NAME_NEAR_MATCH",
+      "description": "Reviewable signal when added package name is close to a popular package",
+      "action": "QUARANTINE",
+      "hardViolation": false
+    },
+    {
+      "id": "BLOCK_UNSUPPORTED_OR_INCOMPLETE",
+      "description": "Quarantine when required dependency evidence cannot be collected or is unsupported",
+      "action": "QUARANTINE",
+      "hardViolation": true
+    }
+  ],
+  "gate": {
+    "defaultDecision": "QUARANTINE",
+    "requireReason": true,
+    "rejectStaleInputs": true,
+    "allowedModes": ["trusted-local-demo", "signed-local"]
+  }
+}

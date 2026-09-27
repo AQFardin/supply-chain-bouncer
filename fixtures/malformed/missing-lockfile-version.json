@@ -1,0 +1,10 @@
+{
+  "name": "missing-lockfile-version",
+  "version": "1.0.0",
+  "packages": {
+    "": {
+      "name": "missing-lockfile-version",
+      "version": "1.0.0"
+    }
+  }
+}

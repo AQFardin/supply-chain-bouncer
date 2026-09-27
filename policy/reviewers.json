@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0",
+  "reviewers": [
+    {
+      "keyId": "demo-reviewer-1",
+      "label": "demo-reviewer",
+      "status": "active"
+    }
+  ]
+}

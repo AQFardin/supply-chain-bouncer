@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InvestigationOutput",
+  "description": "Standard output contract for Bob investigator subagents",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "subjectDigest",
+    "role",
+    "status",
+    "recommendation",
+    "findings",
+    "unknowns"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "subjectDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "typosquat-detective",
+        "provenance-auditor",
+        "behavior-analyst"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "incomplete", "failed"]
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["ALLOW", "QUARANTINE", "BLOCK"]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "evidenceIds",
+          "severity",
+          "confidence",
+          "observation",
+          "interpretation",
+          "suggestedAction"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "observation": {
+            "type": "string"
+          },
+          "interpretation": {
+            "type": "string"
+          },
+          "benignExplanation": {
+            "type": ["string", "null"]
+          },
+          "suggestedAction": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

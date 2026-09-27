@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DecisionEnvelope",
+  "description": "Human review decision envelope bound to exact input hashes",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "mode",
+    "subjectDigest",
+    "decision",
+    "reason",
+    "reviewerLabel",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "1.1"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["trusted-local-demo", "signed-local"]
+    },
+    "subjectDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["ALLOW", "QUARANTINE", "BLOCK"]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 3
+    },
+    "reviewerLabel": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "keyId": {
+      "type": "string"
+    },
+    "payloadBase64": {
+      "type": "string"
+    },
+    "signatureBase64": {
+      "type": "string"
+    },
+    "expiresAt": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

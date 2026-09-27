@@ -1,0 +1,23 @@
+{
+  "source": "npm public top downloads curated sample",
+  "updatedAt": "2026-09-26",
+  "description": "Curated reference list of popular package names for typosquat detection",
+  "packages": [
+    "express",
+    "lodash",
+    "chalk",
+    "axios",
+    "debug",
+    "react",
+    "react-dom",
+    "commander",
+    "moment",
+    "tslib",
+    "dotenv",
+    "semver",
+    "glob",
+    "rxjs",
+    "picocolors",
+    "ms"
+  ]
+}
