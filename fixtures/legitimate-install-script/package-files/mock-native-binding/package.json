@@ -1,0 +1,8 @@
+{
+  "name": "mock-native-binding",
+  "version": "1.0.0",
+  "description": "Inert fixture simulating a legitimate native compiled binding",
+  "scripts": {
+    "install": "node-gyp rebuild"
+  }
+}

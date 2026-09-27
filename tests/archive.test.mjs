@@ -57,4 +57,43 @@ describe('Archive Inspector & Decompression Defense Tests', () => {
     assert.equal(result.files[0].content, fileContent);
     assert.match(result.integrity, /^sha512-/);
   });
+
+  it('tracks large files in omittedFiles rather than silently dropping them', () => {
+    // 1.5 MiB file (exceeds 1 MiB limit)
+    const largeSize = 1.5 * 1024 * 1024;
+    const header = createTarHeader('package/large-bundle.js', largeSize);
+    const padding = Buffer.alloc(Math.ceil(largeSize / 512) * 512);
+    const endBlock = Buffer.alloc(1024);
+
+    const tarBuf = Buffer.concat([header, padding, endBlock]);
+    const result = parseTarBuffer(tarBuf, {
+      MAX_COMPRESSED_SIZE: 10 * 1024 * 1024,
+      MAX_EXPANDED_SIZE: 50 * 1024 * 1024,
+      MAX_ENTRIES: 5000,
+      MAX_TEXT_FILE_SIZE: 1 * 1024 * 1024
+    });
+
+    assert.equal(result.files.length, 0);
+    assert.equal(result.omittedFiles.length, 1);
+    assert.equal(result.omittedFiles[0].path, 'large-bundle.js');
+    assert.match(result.omittedFiles[0].reason, /exceeds text inspection limit/);
+  });
+
+  it('enforces maximum expanded size during decompression (zip bomb defense)', () => {
+    // Generate buffer that decompresses to more than limits.MAX_EXPANDED_SIZE
+    const tinyLimits = {
+      MAX_COMPRESSED_SIZE: 10 * 1024 * 1024,
+      MAX_EXPANDED_SIZE: 1024, // 1 KB limit
+      MAX_ENTRIES: 100,
+      MAX_TEXT_FILE_SIZE: 512
+    };
+
+    const bigPayload = Buffer.alloc(10 * 1024, 'a'); // 10 KB of 'a'
+    const compressed = gzipSync(bigPayload);
+
+    assert.throws(
+      () => inspectTgzArchive(compressed, tinyLimits),
+      /Expanded archive exceeds limit.*zip bomb/
+    );
+  });
 });

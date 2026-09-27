@@ -74,7 +74,8 @@ export async function main(argv = process.argv.slice(2)) {
       const evidence = await collectEvidence(diff, subjectDigest, {
         mode,
         policy,
-        popularPackages
+        popularPackages,
+        headDir
       });
 
       console.log('----------------------------------------------------');

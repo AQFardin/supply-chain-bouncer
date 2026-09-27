@@ -100,6 +100,26 @@
           "scripts": {
             "type": ["object", "null"]
           },
+          "hasInstallScript": {
+            "type": "boolean",
+            "default": false
+          },
+          "provenance": {
+            "type": ["object", "null"],
+            "properties": {
+              "publishedAt": { "type": ["string", "null"] },
+              "maintainersCount": { "type": "integer" },
+              "repositoryUrl": { "type": ["string", "null"] },
+              "hasAttestation": { "type": "boolean" },
+              "tarballUrl": { "type": ["string", "null"] },
+              "isSynthetic": { "type": "boolean" }
+            },
+            "additionalProperties": true
+          },
+          "omittedCoverage": {
+            "type": ["array", "null"],
+            "items": { "type": "string" }
+          },
           "unsupported": {
             "type": "boolean",
             "default": false

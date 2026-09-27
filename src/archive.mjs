@@ -38,14 +38,16 @@ export function isSafeArchivePath(path) {
  * Pure Node.js zero-dependency implementation of ustar/POSIX tar format.
  * @param {Buffer} tarBuffer 
  * @param {object} limits 
- * @returns {{ files: Array<{ path: string, content: string, size: number }>, totalSize: number, entryCount: number, truncated: boolean }}
+ * @returns {{ files: Array<{ path: string, content: string, size: number }>, omittedFiles: Array<{ path: string, size: number, reason: string }>, totalSize: number, entryCount: number, truncated: boolean, truncationReason: string|null }}
  */
 export function parseTarBuffer(tarBuffer, limits = ARCHIVE_LIMITS) {
   const files = [];
+  const omittedFiles = [];
   let offset = 0;
   let totalExpanded = 0;
   let entryCount = 0;
   let truncated = false;
+  let truncationReason = null;
 
   while (offset + 512 <= tarBuffer.length) {
     const header = tarBuffer.subarray(offset, offset + 512);
@@ -59,19 +61,16 @@ export function parseTarBuffer(tarBuffer, limits = ARCHIVE_LIMITS) {
     entryCount++;
     if (entryCount > limits.MAX_ENTRIES) {
       truncated = true;
+      truncationReason = `Archive entry count (${entryCount}) exceeded limit of ${limits.MAX_ENTRIES}`;
       break;
     }
 
     // Read header fields
-    // name: 0..100
     const rawName = header.subarray(0, 100).toString('utf8').replace(/\0.*$/, '').trim();
-    // size: 124..136 (octal string)
     const rawSize = header.subarray(124, 136).toString('utf8').replace(/\0.*$/, '').trim();
     const size = parseInt(rawSize, 8) || 0;
-    // typeflag: 156
     const typeflag = String.fromCharCode(header[156] || 0);
 
-    // prefix (ustar): 345..500
     const rawPrefix = header.subarray(345, 500).toString('utf8').replace(/\0.*$/, '').trim();
     const fullPath = rawPrefix ? `${rawPrefix}/${rawName}` : rawName;
 
@@ -93,19 +92,26 @@ export function parseTarBuffer(tarBuffer, limits = ARCHIVE_LIMITS) {
     totalExpanded += size;
     if (totalExpanded > limits.MAX_EXPANDED_SIZE) {
       truncated = true;
+      truncationReason = `Total expanded size (${totalExpanded} bytes) exceeded limit of ${limits.MAX_EXPANDED_SIZE} bytes`;
       break;
     }
 
+    const normalizedPath = fullPath.replace(/^package\//, '');
+
     if (isRegularFile && size > 0) {
       const fileBytes = tarBuffer.subarray(offset, offset + size);
-      // Only read content of text/script files up to limit
       if (size <= limits.MAX_TEXT_FILE_SIZE) {
-        // Strip common "package/" prefix typical of npm tarballs
-        const normalizedPath = fullPath.replace(/^package\//, '');
         files.push({
           path: normalizedPath,
           content: fileBytes.toString('utf8'),
           size
+        });
+      } else {
+        // Track omitted large files rather than silently ignoring
+        omittedFiles.push({
+          path: normalizedPath,
+          size,
+          reason: `File size (${size} bytes) exceeds text inspection limit of ${limits.MAX_TEXT_FILE_SIZE} bytes`
         });
       }
     }
@@ -117,17 +123,20 @@ export function parseTarBuffer(tarBuffer, limits = ARCHIVE_LIMITS) {
 
   return {
     files,
+    omittedFiles,
     totalSize: totalExpanded,
     entryCount,
-    truncated
+    truncated,
+    truncationReason
   };
 }
 
 /**
  * Decompresses and inspects an npm .tgz buffer in memory without writing to disk.
+ * Limits are enforced during decompression to protect against zip bombs.
  * @param {Buffer} tgzBuffer 
  * @param {object} limits 
- * @returns {{ files: Array<{ path: string, content: string, size: number }>, totalSize: number, entryCount: number, integrity: string }}
+ * @returns {{ files: Array<{ path: string, content: string, size: number }>, omittedFiles: Array<{ path: string, size: number, reason: string }>, totalSize: number, entryCount: number, integrity: string, truncated: boolean, truncationReason: string|null }}
  */
 export function inspectTgzArchive(tgzBuffer, limits = ARCHIVE_LIMITS) {
   if (tgzBuffer.length > limits.MAX_COMPRESSED_SIZE) {
@@ -142,8 +151,16 @@ export function inspectTgzArchive(tgzBuffer, limits = ARCHIVE_LIMITS) {
 
   let tarBuffer;
   try {
-    tarBuffer = gunzipSync(tgzBuffer);
+    // Enforce maxOutputLength during decompression to prevent zip bomb attacks
+    tarBuffer = gunzipSync(tgzBuffer, {
+      maxOutputLength: limits.MAX_EXPANDED_SIZE + 1024
+    });
   } catch (err) {
+    if (err.code === 'ERR_BUFFER_TOO_LARGE' || (err.message && err.message.includes('output length'))) {
+      throw new Error(
+        `Expanded archive exceeds limit of ${limits.MAX_EXPANDED_SIZE} bytes during decompression (zip bomb defense)`
+      );
+    }
     throw new Error(`Failed to decompress gzip archive: ${err.message}`);
   }
 

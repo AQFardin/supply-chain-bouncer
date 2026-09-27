@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790498510846-34ecow",
+  "runId": "run-1790506596597-trdssg",
   "mode": "live",
   "subjectDigest": "098de04af3cff188ca0c8e488678471ee3575a8e94cc76c5c95ee8c7d5de7c28",
   "scannerVersion": "0.1.0",
@@ -27,7 +27,15 @@
         "precommit": "lint-staged"
       },
       "unsupported": false,
-      "unsupportedReason": null
+      "unsupportedReason": null,
+      "provenance": {
+        "publishedAt": "2020-12-08T13:54:35.223Z",
+        "maintainersCount": 6,
+        "repositoryUrl": "git+https://github.com/vercel/ms.git",
+        "hasAttestation": true,
+        "tarballUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+        "isSynthetic": false
+      }
     },
     {
       "name": "picocolors",
@@ -44,7 +52,15 @@
       "hasInstallScript": false,
       "scripts": {},
       "unsupported": false,
-      "unsupportedReason": null
+      "unsupportedReason": null,
+      "provenance": {
+        "publishedAt": "2024-10-16T18:20:03.921Z",
+        "maintainersCount": 1,
+        "repositoryUrl": "git+https://github.com/alexeyraspopov/picocolors.git",
+        "hasAttestation": true,
+        "tarballUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+        "isSynthetic": false
+      }
     }
   ],
   "observations": [],
@@ -56,13 +72,25 @@
     {
       "sourceType": "live",
       "pathOrUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
-      "retrievalTime": "2026-09-27T08:41:50.969Z",
+      "retrievalTime": "2026-09-27T10:56:36.722Z",
+      "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
+    },
+    {
+      "sourceType": "live",
+      "pathOrUrl": "https://registry.npmjs.org/ms",
+      "retrievalTime": "2026-09-27T10:56:36.723Z",
       "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
     },
     {
       "sourceType": "live",
       "pathOrUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
-      "retrievalTime": "2026-09-27T08:41:51.034Z",
+      "retrievalTime": "2026-09-27T10:56:36.784Z",
+      "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
+    },
+    {
+      "sourceType": "live",
+      "pathOrUrl": "https://registry.npmjs.org/picocolors",
+      "retrievalTime": "2026-09-27T10:56:36.784Z",
       "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
     }
   ]

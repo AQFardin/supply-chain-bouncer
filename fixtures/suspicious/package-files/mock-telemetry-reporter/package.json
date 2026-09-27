@@ -1,0 +1,8 @@
+{
+  "name": "mock-telemetry-reporter",
+  "version": "1.0.0",
+  "description": "Inert fixture package simulating suspicious install script behavior",
+  "scripts": {
+    "postinstall": "node setup.js"
+  }
+}
