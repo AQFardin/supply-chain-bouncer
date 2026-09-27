@@ -4,236 +4,272 @@
 
 Supply Chain Bouncer reviews npm dependency changes detected in a `package-lock.json`
 (lockfile version 3) before they reach production. It collects static evidence from
-the lockfile and the npm registry, orchestrates three Bob investigator roles to reason
-over that evidence, captures a human ALLOW / QUARANTINE / BLOCK decision, and evaluates
-the decision against a local CLI gate. No target code is executed at any point.
+the lockfile and the npm registry without executing target code, orchestrates three
+parallel Bob investigator subagents to reason over that evidence, and produces a
+structured investigation report. A human makes the final ALLOW / QUARANTINE / BLOCK
+decision. A local CLI gate evaluates the decision against policy.
 
 ---
 
-## Scope (first implementation)
+## Implemented scope
 
 | In scope | Out of scope |
 |---|---|
-| One dependency root (`examples/sample-app/`) | Multi-root monorepos |
-| npm lockfile v3 (`package-lock.json`) | yarn.lock, pnpm-lock, other registries |
-| Static evidence only (no `npm install`, no script execution) | Installing or running target packages |
-| Local `trusted-local-demo` gate mode | Remote CI enforcement |
+| npm lockfile v3 (`package-lock.json`) | yarn.lock, pnpm-lock, other formats |
+| Direct and transitive dependency changes | Multi-root monorepos |
+| Static evidence only — no `npm install`, no script execution | Installing or running target packages |
+| Fixture mode (harmless local files) and live mode (real npm registry) | Other registries as primary evidence |
+| `trusted-local-demo` gate mode | Remote CI enforcement |
 | Human decision recorded as JSON | Cryptographic signing (optional extension) |
-| Three Bob investigator roles via skill | External AI services |
+| Parallel Bob subagents via skill | External AI services |
 
 ---
 
-## Data Flow
+## Repository structure
+
+| Path | Contents |
+|---|---|
+| `src/cli.mjs` | CLI entry point — `bouncer scan` command |
+| `src/input.mjs` | Project input loader, SHA-256 file hasher, subject-digest computation |
+| `src/lockfile-diff.mjs` | Lockfile comparator — produces direct/transitive diff with unsupported-source detection |
+| `src/collector.mjs` | Evidence collector — registry fetch, fixture file inspection, static checks |
+| `src/registry.mjs` | Registry HTTP adapter — metadata and artifact fetching with allowlist validation |
+| `src/archive.mjs` | In-memory `.tgz` inspector — decompresses and parses without disk writes |
+| `src/checks/index.mjs` | Static check orchestrator |
+| `src/checks/rules.mjs` | Deterministic check rules (typosquat, lifecycle scripts, code patterns, prompt-injection) |
+| `schemas/evidence.schema.json` | Evidence bundle data contract |
+| `schemas/investigation.schema.json` | Bob investigator output contract |
+| `schemas/decision.schema.json` | Human decision envelope contract |
+| `policy/policy.json` | Gate policy rules |
+| `policy/popular-packages.json` | Popular package reference list for typosquat detection |
+| `policy/reviewers.json` | Reviewer identity reference |
+| `tests/*.test.mjs` | Node.js built-in test runner suites (43 tests, 0 failures) |
+| `fixtures/` | Harmless, labelled test inputs: benign, suspicious, prompt-injection, legitimate-install-script, malformed |
+| `examples/sample-app/` | Sample application for end-to-end demonstration |
+| `reports/demo/` | Sanitized demonstration evidence bundles |
+| `decisions/` | Recorded human review decisions |
+| `.bob/skills/supply-chain-bouncer/SKILL.md` | Bob investigation skill (parallel subagent orchestration) |
+| `.bob/agents/` | Three investigator role instruction files |
+| `.bob/commands/investigate.md` | `/investigate` slash command entry point |
+| `docs/` | Architecture and plan documents |
+
+---
+
+## Data flow
 
 ```
-package-lock.json (before)          package-lock.json (after)
-         │                                    │
-         └──────────── comparator ────────────┘
-                            │
-                    dependency diff
-                    (added / changed / removed)
-                            │
-                   evidence collector
-                  (registry metadata, hashes,
-                   publish date, maintainers)
-                            │
-                    evidence bundle
-                    (evidence.json)
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-       Investigator 1  Investigator 2  Investigator 3
-       (supply-chain   (provenance &   (prompt-injection
-        risk)          integrity)       & policy)
-              │             │             │
-              └─────────────┴─────────────┘
-                            │
-                   investigation report
-                   (report.json + report.html)
-                            │
-                   terminal review menu
-                  (human reads report, chooses
-                   ALLOW / QUARANTINE / BLOCK)
-                            │
-                   decision envelope
-                   (decision.json — labelled
-                    trusted-local-demo)
-                            │
-                    local CLI gate
-                   (evaluates decision against
-                    policy rules, exits 0 or 1)
+package-lock.json (base)     package-lock.json (candidate)
+       │                              │
+       └─────── src/input.mjs ────────┘
+                (load + hash)
+                      │
+              subjectDigest (SHA-256 over 4 files)
+                      │
+          src/lockfile-diff.mjs
+          (compareLockfiles)
+                      │
+           dependency diff
+           changed: added / changed / removed
+           each: name, version, integrity,
+                 isDirect, scripts, unsupported
+                      │
+           src/collector.mjs
+           (collectEvidence)
+           ├── src/registry.mjs (fetchPackageMetadata, fetchPackageArtifact)
+           ├── src/archive.mjs  (inspectTgzArchive — in-memory only)
+           └── src/checks/      (runStaticChecks)
+                      │
+             evidence.json
+             (schemas/evidence.schema.json)
+                      │
+         Bob skill: supply-chain-bouncer
+         (/investigate <evidence-path>)
+         ┌───────────────┬────────────────────┐
+         ▼               ▼                    ▼
+  typosquat-       provenance-          behavior-
+  detective        auditor              analyst
+  (parallel        (parallel            (parallel
+   subagent)        subagent)            subagent)
+         │               │                    │
+         └───────────────┴────────────────────┘
+                         │
+                   findings.json
+                   (3 × schemas/investigation.schema.json
+                    wrapped in combined envelope)
+                         │
+               [NOT YET IMPLEMENTED]
+               src/reporter.mjs → report.json + report.txt
+               src/menu.mjs     → terminal review menu
+               src/gate.mjs     → local gate (exit 0/1)
 ```
 
 ---
 
-## Component Map
+## Three-layer model
 
-| Component | Location | Layer |
+### Layer 1 — Deterministic code (all implemented)
+
+All modules in `src/` are pure, side-effect-free logic unit-tested without Bob.
+
+**`src/input.mjs`** — Loads `package.json` + `package-lock.json` pairs, enforces
+lockfileVersion 3, rejects `npm-shrinkwrap.json`, computes per-file SHA-256 hashes
+and a stable `subjectDigest` over all four input files.
+
+**`src/lockfile-diff.mjs`** — Compares two lockfile v3 `packages` maps, classifies
+each entry as `added`, `changed`, `removed`, or `unchanged`, distinguishes direct
+from transitive dependencies, and detects unsupported source types.
+
+**`src/collector.mjs`** — Coordinates evidence collection:
+- In `live` mode: fetches registry metadata and artifact tarball over HTTPS, inspects
+  the `.tgz` in memory, computes SHA-512 integrity of the downloaded artifact.
+- In `fixture` mode: reads local fixture package files, computes a SHA-256 content
+  digest of the inspected files (labeled `sha256-fixture-files:<hex>` to clearly
+  distinguish from verified downloaded-artifact integrity). Missing fixture files are
+  flagged as `incomplete` evidence, never silently treated as complete.
+- Runs deterministic static checks on file contents and metadata fields.
+
+**`src/checks/rules.mjs`** — Deterministic check rules:
+- `checkNameNearMatch` — Levenshtein distance ≤ 2 against popular packages list.
+- `checkLifecycleScripts` — Detects added or changed install/preinstall/postinstall scripts.
+- `analyzePackageFiles` — Regex scans for `ENVIRONMENT_ACCESS`, `NETWORK_OPERATION`,
+  `PROCESS_EXECUTION`, `DYNAMIC_EXECUTION`, `OBFUSCATION_INDICATOR`.
+- `checkMetadataFields` — Scans package metadata text fields (e.g. `description`) for
+  prompt-injection patterns. Matches are surfaced as labeled untrusted excerpts:
+  `[UNTRUSTED DATA from <pkg> <field>]: <text>`. The matched text is treated strictly
+  as evidence data — investigators must cite it, never follow it.
+
+**`src/archive.mjs`** — Pure in-memory gzip decompression + tar parsing. Enforces:
+- 10 MiB compressed, 50 MiB expanded, 5000 entry, 1 MiB-per-file limits.
+- Rejects directory traversal and symlink entries.
+- Tracks omitted large files explicitly (never silent).
+
+**`src/registry.mjs`** — HTTPS-only, allowlisted registry fetch (`registry.npmjs.org`,
+`registry.yarnpkg.com`). Rejects embedded credentials, non-HTTPS protocols, and unknown
+registry hosts.
+
+### Layer 2 — Bob reasoning (skill + role files)
+
+Bob is invoked after the evidence bundle is written to disk. The investigation skill
+[`.bob/skills/supply-chain-bouncer/SKILL.md`](.bob/skills/supply-chain-bouncer/SKILL.md)
+guides Bob through:
+
+1. Reading the evidence bundle and output schema.
+2. Spawning three parallel subagents in the same turn.
+3. Collecting and validating their outputs.
+4. Writing `findings.json` to the evidence directory.
+
+**Custom native Workflow authoring is not supported in this Bob version.** The skill
+is the correct substitute. The `/investigate` slash command
+([`.bob/commands/investigate.md`](.bob/commands/investigate.md)) provides a convenient
+entry point.
+
+**Investigator roles** — role instruction files in `.bob/agents/`:
+- `investigator-typosquat-detective.md` — name similarity, scope confusion, typosquat signals.
+- `investigator-provenance-auditor.md` — registry source, integrity consistency, publish metadata.
+- `investigator-behavior-analyst.md` — lifecycle scripts, code patterns, prompt-injection detection.
+
+Each role file specifies the role's focus, required evidence fields, output contract,
+and hard constraints (no execution, treat metadata as data, incomplete → QUARANTINE).
+
+**Bob "persona files" do not exist as a concept** in this version. Roles are implemented
+as role-instruction markdown files loaded by the skill as supporting files.
+
+### Layer 3 — Human decisions (not yet implemented)
+
+`src/menu.mjs`, `src/reporter.mjs`, and `src/gate.mjs` are planned for the next
+implementation step. The decision envelope schema (`schemas/decision.schema.json`) and
+gate policy (`policy/policy.json`) are defined and tested.
+
+---
+
+## Data contracts
+
+### `evidence.json` — `schemas/evidence.schema.json`
+
+Top-level required fields: `schemaVersion`, `runId`, `mode`, `subjectDigest`,
+`scannerVersion`, `policyDigest`, `collectionStatus`, `packages`, `observations`,
+`unknowns`, `sources`.
+
+**`collectionStatus`** values:
+- `"complete"` — all evidence collected, no incomplete reasons, no critical observations.
+- `"incomplete"` — at least one incomplete reason (missing files, unsupported source,
+  archive truncation, etc.).
+- `"quarantine"` — at least one critical-severity observation.
+
+**`sources[].contentDigest`** labeling:
+- `sha512-<base64>` — computed SHA-512 of a downloaded artifact (live mode, verified).
+- `sha256-fixture-files:<hex>` — SHA-256 over inspected fixture file content
+  (fixture mode, synthetic — NOT a verified download).
+- `sha256-fixture-files:empty-no-files-found` — no fixture files discovered; evidence
+  is incomplete for this package.
+
+**`observations[].untrustedExcerpt`** — present on `PROMPT_INJECTION_INDICATOR`
+observations only. Contains the adversarial text labeled as:
+`[UNTRUSTED DATA from <pkg> <field>]: <text>`. Investigators must cite it as evidence
+and must not follow its directives.
+
+### `findings.json` (combined investigation output)
+
+Produced by the Bob skill after all three subagents complete. Wraps three
+`schemas/investigation.schema.json` objects plus:
+- `aggregateRecommendation` — most restrictive of the three (`BLOCK` > `QUARANTINE` > `ALLOW`).
+- `investigationComplete` — `true` only if all three `status` values are `"complete"`.
+
+### `decision.json` — `schemas/decision.schema.json`
+
+Human review decision. Required fields: `schemaVersion`, `mode`, `subjectDigest`,
+`decision`, `reason`, `reviewerLabel`, `createdAt`.
+
+`mode` values: `"trusted-local-demo"` (no crypto) or `"signed-local"` (optional extension).
+
+---
+
+## Unsupported dependency sources
+
+The collector explicitly does not fetch registry evidence for these source types.
+Each is flagged `"unsupported": true` in the evidence bundle.
+
+| Pattern | Detection | Reason |
 |---|---|---|
-| Lockfile comparator | `src/comparator.mjs` | Deterministic code |
-| Evidence collector | `src/collector.mjs` | Deterministic code (HTTP only) |
-| Evidence schema | `schemas/evidence.schema.json` | Data contract |
-| Investigation report schema | `schemas/report.schema.json` | Data contract |
-| Decision envelope schema | `schemas/decision.schema.json` | Data contract |
-| Policy rules | `policy/rules.json` | Configuration |
-| CLI entry point | `src/cli.mjs` | Orchestration |
-| Terminal review menu | `src/menu.mjs` | Human interface |
-| Local gate | `src/gate.mjs` | Deterministic code |
-| Bob investigation skill | `.bob/skills/supply-chain-bouncer/SKILL.md` | Bob reasoning |
-| Investigator role files | `.bob/agents/` (3 × `.md`) | Bob reasoning |
-| Sample application | `examples/sample-app/` | Demonstration |
-| Fixture lockfiles | `fixtures/` | Test inputs |
-| Decision records | `decisions/` | Outputs |
-| Demo reports | `reports/demo/` | Outputs |
+| `git+https://...` | version or resolved prefix | No registry metadata |
+| `git+ssh://...` | version or resolved prefix | No registry metadata |
+| `github:<user>/<repo>` | version prefix | No registry metadata |
+| `file:../...` | version or resolved prefix | Local path, no tarball |
+| `link:../...` | version or resolved prefix | Symlink, no tarball |
+| Non-standard registry hostname | resolved URL hostname check | Registry not queried |
+| Invalid resolved URL | URL parse failure | Cannot fetch |
 
 ---
 
-## Three-Layer Model
+## Bob feature support (verified)
 
-### Layer 1 — Deterministic code
-
-All code in `src/` is pure, side-effect-free logic that can be unit-tested without Bob.
-- **Comparator**: reads two lockfile JSON files, produces a structured diff.
-- **Collector**: fetches `https://registry.npmjs.org/<pkg>/<version>` metadata over HTTPS
-  (read-only, no install). Explicitly rejects scoped packages from non-npm registries,
-  git references, `file:` paths, and `link:` paths — these are flagged as
-  **unsupported dependency sources** and passed to investigators with a warning marker.
-- **Gate**: reads a decision envelope and a policy file, returns exit code 0 (ALLOW) or
-  1 (BLOCK/QUARANTINE). In `trusted-local-demo` mode the gate accepts a local signature
-  field of `"mode": "trusted-local-demo"` with no cryptographic verification.
-
-### Layer 2 — Bob reasoning
-
-Bob is invoked manually by the developer inside the IDE after the evidence bundle is
-written to disk. The investigation skill guides Bob through three sequential investigator
-roles, each producing a typed finding object that is appended to the report.
-
-**Investigator roles (defined in `.bob/agents/`):**
-- `investigator-supply-chain.md` — examines version bump patterns, maintainer changes,
-  publish timing, and known-bad version indicators.
-- `investigator-provenance.md` — checks hash consistency, registry source, known
-  signatures (future), and dist-tag alignment.
-- `investigator-policy.md` — applies policy rules from `policy/rules.json`, checks for
-  prompt-injection patterns in package metadata fields, and assigns a final risk score.
-
-The skill reads the evidence bundle and each role file, then instructs Bob to produce
-structured JSON findings. Bob does not execute code or install packages.
-
-### Layer 3 — Human decisions
-
-The terminal review menu (`src/menu.mjs`) presents the investigation report and
-prompts the human developer for ALLOW, QUARANTINE, or BLOCK. The resulting
-decision envelope includes the reviewer identity, timestamp, mode label, and
-the chosen verdict. It is written to `decisions/` and passed to the gate.
-
----
-
-## Data Contracts
-
-### `evidence.json`
-```
-{
-  "schema": "evidence/v1",
-  "generatedAt": "<ISO-8601>",
-  "rootPackage": "<name>@<version>",
-  "changes": [
-    {
-      "name": "<pkg>",
-      "changeType": "added|changed|removed",
-      "fromVersion": "<semver|null>",
-      "toVersion": "<semver|null>",
-      "registryMeta": {
-        "publishedAt": "<ISO-8601>|null",
-        "maintainers": ["<email>"],
-        "dist": { "tarball": "<url>", "shasum": "<hex>", "integrity": "<sri>" },
-        "scripts": { "install": "<cmd|null>", "preinstall": "<cmd|null>", "postinstall": "<cmd|null>" }
-      },
-      "unsupported": false,
-      "unsupportedReason": null
-    }
-  ]
-}
-```
-
-### `report.json`
-```
-{
-  "schema": "report/v1",
-  "evidenceRef": "<path>",
-  "generatedAt": "<ISO-8601>",
-  "findings": [
-    {
-      "investigator": "supply-chain|provenance|policy",
-      "riskLevel": "low|medium|high|critical",
-      "summary": "<text>",
-      "details": ["<text>"],
-      "recommendation": "ALLOW|QUARANTINE|BLOCK"
-    }
-  ],
-  "aggregateRisk": "low|medium|high|critical",
-  "recommendedVerdict": "ALLOW|QUARANTINE|BLOCK"
-}
-```
-
-### `decision.json`
-```
-{
-  "schema": "decision/v1",
-  "reportRef": "<path>",
-  "decidedAt": "<ISO-8601>",
-  "decidedBy": "<string>",
-  "mode": "trusted-local-demo",
-  "verdict": "ALLOW|QUARANTINE|BLOCK",
-  "rationale": "<text>"
-}
-```
-
----
-
-## Unsupported Dependency Sources
-
-The collector explicitly does not fetch evidence for the following source types.
-Each is flagged with `"unsupported": true` in the evidence bundle and the
-investigators are instructed to treat them as requiring manual review.
-
-| Source pattern | Example | Reason |
+| Feature | Support | Implementation |
 |---|---|---|
-| `git+https://` reference | `"version": "git+https://..."` | No registry metadata |
-| `git+ssh://` reference | `"version": "git+ssh://..."` | No registry metadata |
-| `github:` shorthand | `"version": "github:user/repo"` | No registry metadata |
-| `file:` path | `"version": "file:../local"` | Local path, no tarball |
-| `link:` path | `"version": "link:../local"` | Symlink, no tarball |
-| Non-npm scoped registry | `"resolved": "https://other-registry.com/..."` | Registry not queried |
+| Reusable skill with supporting files | Supported | `.bob/skills/supply-chain-bouncer/SKILL.md` |
+| Parallel subagent spawning | Supported | `spawn_subagent` called in same turn |
+| Slash command | Supported | `.bob/commands/investigate.md` |
+| Custom native Workflow authoring | **Not supported** | Skill is the correct substitute |
+| Persona files | **Not a Bob concept** | Role files in `.bob/agents/` loaded by skill |
+| Project-mode custom modes | Supported | `.bob/custom_modes.yaml` (not used here) |
 
 ---
 
-## Bob Feature Usage
+## Gate modes
 
-| Requirement | Bob API used | Notes |
+| Mode | Behaviour | Crypto |
 |---|---|---|
-| Reusable investigation workflow | Skill (`.bob/skills/supply-chain-bouncer/SKILL.md`) | Confirmed supported |
-| Investigator roles | Role instruction files in `.bob/agents/`, loaded by skill | Read as supporting files |
-| Terminal review menu | Deterministic Node.js code (`src/menu.mjs`) | Not a Bob feature |
-| Custom native Workflow | **Not available** — `start_workflow` launches only platform-built-in workflows | Skill is the correct substitute |
-| Persona files | **Not a Bob concept** — roles are custom modes or skill-embedded instructions | `.bob/custom_modes.yaml` for named investigator modes (optional) |
+| `trusted-local-demo` | Accepts any structurally valid decision with the mode label | None |
+| `signed-local` (optional) | HMAC-SHA256 over decision envelope, 1-hour TTL, key from env | Symmetric key |
+
+Canonical JSON serialisation is not implemented. Canonical JSON is not planned.
 
 ---
 
-## Gate Modes
+## Optional extensions (not implemented)
 
-| Mode | Behaviour | Crypto required |
-|---|---|---|
-| `trusted-local-demo` | Accepts any decision envelope that has `"mode":"trusted-local-demo"` | No |
-| `signed` (optional) | Verifies a HMAC-SHA256 signature over the decision envelope; valid for 1 hour | Yes — symmetric key in env var only |
-
-Canonical JSON serialisation is **not** implemented. The signature covers the JSON
-string as written to disk (stable field order enforced at write time by the gate module).
-
----
-
-## Optional Extensions (not in first implementation)
-
-- **Signed decisions**: HMAC-SHA256 over decision envelope, 1-hour TTL, key from env.
-- **GitHub status check**: POST to GitHub Checks API from gate; requires separate
-  readiness check before implementation.
-- **HTML report**: `reports/demo/report.html` generated from `report.json`.
+- `src/reporter.mjs` — HTML + text report from `findings.json`.
+- `src/menu.mjs` — Terminal review menu capturing human ALLOW / QUARANTINE / BLOCK.
+- `src/gate.mjs` — Local gate: checks current input hashes, evidence completeness,
+  all required investigator outputs, policy, and human approval. Exits 0 or 1.
+- Signed decisions: HMAC-SHA256, 1-hour TTL, key from env.
+- GitHub status check: POST to GitHub Checks API (separate readiness check required first).

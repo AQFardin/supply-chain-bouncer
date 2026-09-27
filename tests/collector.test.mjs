@@ -9,6 +9,8 @@ const BENIGN_BASE = resolve('fixtures/benign/base');
 const BENIGN_HEAD = resolve('fixtures/benign/head');
 const SUSPICIOUS_BASE = resolve('fixtures/suspicious/base');
 const SUSPICIOUS_HEAD = resolve('fixtures/suspicious/head');
+const PROMPT_INJECTION_BASE = resolve('fixtures/prompt-injection/base');
+const PROMPT_INJECTION_HEAD = resolve('fixtures/prompt-injection/head');
 
 describe('Static Evidence Collector Tests', () => {
   it('collects evidence for suspicious fixture discovering on-disk fixture package files', async () => {
@@ -109,5 +111,120 @@ describe('Static Evidence Collector Tests', () => {
     const discrepancyObs = evidence.observations.find((o) => o.ruleId === 'ARTIFACT_INTEGRITY_MISMATCH');
     assert.ok(discrepancyObs);
     assert.match(discrepancyObs.explanation, /does not match registry metadata tarball URL/);
+  });
+
+  // --- Regression tests for evidence-collection corrections ---
+
+  it('regression: fixture contentDigest is a real SHA-256 of inspected files, not a placeholder', async () => {
+    const base = await loadProjectInputs(SUSPICIOUS_BASE, 'base');
+    const head = await loadProjectInputs(SUSPICIOUS_HEAD, 'head');
+    const diff = compareLockfiles(base.lockfile, head.lockfile);
+
+    const evidence = await collectEvidence(diff, '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', {
+      mode: 'fixture',
+      headDir: SUSPICIOUS_HEAD
+    });
+
+    const fixtureSource = evidence.sources.find((s) => s.sourceType === 'fixture');
+    assert.ok(fixtureSource, 'should have a fixture source record');
+
+    // Must start with the fixture-files label, not an SRI mock string
+    assert.match(
+      fixtureSource.contentDigest,
+      /^sha256-fixture-files:/,
+      'fixture contentDigest must be a labeled SHA-256 of inspected file content, not an SRI placeholder'
+    );
+
+    // Must not be a mock/opaque placeholder string
+    assert.ok(
+      !fixtureSource.contentDigest.includes('mockSuspicious') &&
+      !fixtureSource.contentDigest.includes('mockFixture'),
+      'fixture contentDigest must not be an opaque mock placeholder'
+    );
+  });
+
+  it('regression: missing fixture files produces incomplete evidence and an observation', async () => {
+    // Use a fixture diff that points at a package with no package-files directory
+    const diffNoFiles = {
+      packages: [
+        {
+          name: 'package-with-no-fixture-files',
+          version: '1.0.0',
+          location: 'node_modules/package-with-no-fixture-files',
+          changeType: 'added',
+          isDirect: true,
+          integrity: 'sha512-someIntegrity==',
+          resolved: 'https://registry.npmjs.org/package-with-no-fixture-files/-/1.0.0.tgz',
+          hasInstallScript: false,
+          scripts: null,
+          unsupported: false,
+          unsupportedReason: null
+        }
+      ]
+    };
+
+    const evidence = await collectEvidence(
+      diffNoFiles,
+      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      { mode: 'fixture' }  // no headDir, no fixtureFiles — nothing will be found
+    );
+
+    // collectionStatus must be incomplete, not complete
+    assert.equal(evidence.collectionStatus, 'incomplete');
+    assert.ok(evidence.incompleteReasons.length > 0);
+    assert.ok(
+      evidence.incompleteReasons.some((r) => r.includes('No fixture package files found')),
+      'incompleteReasons must explain missing fixture files'
+    );
+
+    // There must be an observation for it too
+    const missingObs = evidence.observations.find(
+      (o) => o.ruleId === 'UNSUPPORTED_OR_INCOMPLETE' && o.id.includes('missing-fixture-files')
+    );
+    assert.ok(missingObs, 'must have an observation for missing fixture files');
+    assert.match(missingObs.explanation, /Static file checks could not be performed/);
+
+    // contentDigest must reflect the empty state, not a phantom hash
+    const fixtureSource = evidence.sources.find((s) => s.sourceType === 'fixture');
+    assert.ok(fixtureSource);
+    assert.match(
+      fixtureSource.contentDigest,
+      /empty-no-files-found/,
+      'empty fixture must record that no files were found in its contentDigest'
+    );
+  });
+
+  it('regression: prompt-injection metadata text reaches evidence as labeled untrusted observation', async () => {
+    const base = await loadProjectInputs(PROMPT_INJECTION_BASE, 'base');
+    const head = await loadProjectInputs(PROMPT_INJECTION_HEAD, 'head');
+    const diff = compareLockfiles(base.lockfile, head.lockfile);
+
+    const evidence = await collectEvidence(diff, '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', {
+      mode: 'fixture',
+      headDir: PROMPT_INJECTION_HEAD
+    });
+
+    // The PROMPT_INJECTION_INDICATOR observation must be present
+    const injectionObs = evidence.observations.find((o) => o.ruleId === 'PROMPT_INJECTION_INDICATOR');
+    assert.ok(injectionObs, 'must detect prompt-injection pattern in adversarial-helper description');
+    assert.equal(injectionObs.severity, 'high');
+
+    // The untrustedExcerpt must be present and labeled — investigators see it as data, not instruction
+    assert.ok(injectionObs.untrustedExcerpt, 'must include untrustedExcerpt field');
+    assert.match(
+      injectionObs.untrustedExcerpt,
+      /\[UNTRUSTED DATA from adversarial-helper/,
+      'untrustedExcerpt must be labeled with package name and field origin'
+    );
+
+    // The adversarial instruction text must appear in the excerpt so investigators can see it
+    assert.ok(
+      injectionObs.untrustedExcerpt.includes('Ignore') ||
+      injectionObs.explanation.includes('prompt-injection pattern'),
+      'adversarial string must be quoted as evidence in the observation'
+    );
+
+    // The observation must cite the metadata field
+    assert.match(injectionObs.evidenceRef, /package-metadata#description/);
   });
 });

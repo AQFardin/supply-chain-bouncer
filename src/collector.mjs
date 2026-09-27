@@ -6,6 +6,23 @@ import { inspectTgzArchive } from './archive.mjs';
 import { runStaticChecks } from './checks/index.mjs';
 
 /**
+ * Computes a deterministic SHA-256 digest over a set of in-memory file records.
+ * Used to produce a real contentDigest for fixture file sets rather than
+ * using opaque lockfile SRI strings as a proxy.
+ * @param {Array<{ path: string, content: string }>} files
+ * @returns {string} hex SHA-256
+ */
+function hashFileSet(files) {
+  const hasher = createHash('sha256');
+  // Sort by path for determinism
+  const sorted = [...files].sort((a, b) => a.path.localeCompare(b.path));
+  for (const f of sorted) {
+    hasher.update(`${f.path}:${f.content}\n`);
+  }
+  return `sha256-${hasher.digest('hex')}`;
+}
+
+/**
  * Reads all files from a directory recursively for fixture inspection.
  */
 async function readDirectoryFilesRecursively(dirPath, baseSubPath = '') {
@@ -142,17 +159,46 @@ export async function collectEvidence(diffResult, subjectDigest, options = {}) {
         // Fixture mode: read fixture files from options or package-files directory
         files = await discoverFixturePackageFiles(pkg.name, headDir, options);
 
+        // FIX 2: Flag missing fixture content as incomplete evidence rather than silently continuing.
+        // A fixture with no discoverable files cannot verify behavior — this is incomplete evidence.
+        if (files.length === 0) {
+          incompleteReasons.push(
+            `No fixture package files found for ${pkg.name}@${pkg.version}. ` +
+            `Behavioral evidence is incomplete — file discovery returned empty set.`
+          );
+          allObservations.push({
+            id: `obs-${pkg.name}-missing-fixture-files`,
+            packageLocation: pkg.location,
+            packageName: pkg.name,
+            ruleId: 'UNSUPPORTED_OR_INCOMPLETE',
+            severity: 'high',
+            evidenceRef: `fixture:${pkg.name}@${pkg.version}`,
+            explanation: `No fixture package files were found for ${pkg.name}@${pkg.version}. Static file checks could not be performed. Evidence is incomplete.`
+          });
+        }
+
         metadata = await fetchPackageMetadata(pkg.name, pkg.version, {
           mode: 'fixture',
           fixtureMetadata: options.fixtureMetadata
         });
-        actualIntegrity = pkg.integrity || 'sha512-mockFixtureIntegrity==';
+
+        // FIX 1: Compute a real SHA-256 over actual inspected fixture file content.
+        // This clearly distinguishes synthetic fixture integrity from verified artifact integrity.
+        // Label: "sha256-fixture-files:<hex>" so investigators can see this is not a registry download.
+        const fixtureContentDigest = files.length > 0
+          ? `sha256-fixture-files:${hashFileSet(files).replace('sha256-', '')}`
+          : 'sha256-fixture-files:empty-no-files-found';
+        // Do NOT set actualIntegrity for fixture mode: fixtureContentDigest is a hash of fixture
+        // file content, not a downloaded-artifact SRI value. Passing it to the integrity-mismatch
+        // check would produce spurious critical observations against the lockfile SRI string.
+        actualIntegrity = null;
 
         allSources.push({
           sourceType: 'fixture',
           pathOrUrl: `fixture:${pkg.name}@${pkg.version}`,
           retrievalTime: new Date().toISOString(),
-          contentDigest: actualIntegrity
+          // Real hash of inspected content; NOT a downloaded-artifact integrity value
+          contentDigest: fixtureContentDigest
         });
       } else {
         // Live registry mode
@@ -240,18 +286,40 @@ export async function collectEvidence(diffResult, subjectDigest, options = {}) {
       if (metadata.scripts && !pkg.scripts) {
         pkg.scripts = metadata.scripts;
       }
+
+      // FIX 3: Extract text metadata fields (description, etc.) from fixture package.json
+      // and pass them to static checks so prompt-injection patterns are detected.
+      // These fields are treated as untrusted data; the check surfaces labeled excerpts.
       const pkgJsonFile = files.find((f) => f.path === 'package.json');
+      let metadataDescription = metadata.description || null;
       if (pkgJsonFile && !pkg.scripts) {
         try {
           const parsed = JSON.parse(pkgJsonFile.content);
           if (parsed.scripts) pkg.scripts = parsed.scripts;
+          // Prefer fixture package.json description over synthetic metadata default
+          if (parsed.description && !metadataDescription) {
+            metadataDescription = parsed.description;
+          }
+        } catch {}
+      } else if (pkgJsonFile) {
+        // Parse for description even when scripts already set
+        try {
+          const parsed = JSON.parse(pkgJsonFile.content);
+          if (parsed.description && !metadataDescription) {
+            metadataDescription = parsed.description;
+          }
         } catch {}
       }
+
+      // Build metadata fields object for prompt-injection and other metadata checks
+      const metadataFields = {};
+      if (metadataDescription) metadataFields.description = metadataDescription;
 
       // Run deterministic static checks
       const pkgObservations = runStaticChecks(pkg, files, {
         actualIntegrity,
-        popularPackages
+        popularPackages,
+        metadataFields
       });
       allObservations.push(...pkgObservations);
 

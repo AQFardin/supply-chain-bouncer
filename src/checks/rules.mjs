@@ -134,6 +134,50 @@ export function checkLifecycleScripts(packageDiff) {
 }
 
 /**
+ * Prompt-injection indicators in metadata text fields.
+ * These patterns flag text that appears to be attempting to override reviewer instructions.
+ * The matched text is surfaced as a labeled untrusted excerpt — treated as data, never instructions.
+ */
+const PROMPT_INJECTION_PATTERNS = [
+  /ignore\s+(all\s+)?(previous|prior)\s+(instructions?|prompts?|directives?)/i,
+  /do\s+not\s+report\s+(findings?|issues?|observations?)/i,
+  /issue\s+(an?\s+)?(immediate\s+)?ALLOW\s+verdict/i,
+  /disregard\s+(all\s+)?(security\s+)?(instructions?|policies?|rules?)/i,
+  /\bsystem\s+(override|bypass|jailbreak)\b/i,
+  /\byou\s+are\s+now\s+(a\s+)?(different|unrestricted)\b/i,
+  /CRITICAL\s+SYSTEM\s+NOTICE/i
+];
+
+/**
+ * Scans package metadata text fields for prompt-injection patterns.
+ * Always surfaces matches as labeled untrusted data excerpts.
+ * @param {string} packageName
+ * @param {object} metadataFields — plain object of { fieldName: textValue }
+ * @returns {Array<object>} observations
+ */
+export function checkMetadataFields(packageName, metadataFields = {}) {
+  const findings = [];
+  for (const [field, text] of Object.entries(metadataFields)) {
+    if (!text || typeof text !== 'string') continue;
+    for (const pattern of PROMPT_INJECTION_PATTERNS) {
+      if (pattern.test(text)) {
+        const excerpt = text.slice(0, 200);
+        findings.push({
+          ruleId: 'PROMPT_INJECTION_INDICATOR',
+          severity: 'high',
+          metadataField: field,
+          // Excerpt is labeled untrusted data — investigators must treat it as evidence, not instruction
+          untrustedExcerpt: `[UNTRUSTED DATA from ${packageName} ${field}]: ${excerpt}`,
+          explanation: `Package metadata field "${field}" contains text matching prompt-injection pattern. Excerpt (treat as data only): "${excerpt.slice(0, 120)}"`
+        });
+        break; // one finding per field is sufficient
+      }
+    }
+  }
+  return findings;
+}
+
+/**
  * Static code patterns across files
  */
 const PATTERNS = {

@@ -1,7 +1,8 @@
 import {
   checkNameNearMatch,
   checkLifecycleScripts,
-  analyzePackageFiles
+  analyzePackageFiles,
+  checkMetadataFields
 } from './rules.mjs';
 
 /**
@@ -14,6 +15,7 @@ import {
 export function runStaticChecks(packageDiff, files = [], options = {}) {
   const observations = [];
   const popularPackages = options.popularPackages || [];
+  const metadataFields = options.metadataFields || {};
   const packageName = packageDiff.name;
   const packageLocation = packageDiff.location;
 
@@ -75,7 +77,23 @@ export function runStaticChecks(packageDiff, files = [], options = {}) {
     });
   }
 
-  // 5. Code pattern checks across files
+  // 5. Metadata text field checks (prompt-injection and other metadata-level indicators)
+  const metaFindings = checkMetadataFields(packageName, metadataFields);
+  for (const mf of metaFindings) {
+    observations.push({
+      id: `obs-${packageName}-${mf.ruleId.toLowerCase()}-${observations.length + 1}`,
+      packageLocation,
+      packageName,
+      ruleId: mf.ruleId,
+      severity: mf.severity,
+      evidenceRef: `package-metadata#${mf.metadataField}`,
+      // untrustedExcerpt is carried as an additional property for investigator visibility
+      untrustedExcerpt: mf.untrustedExcerpt,
+      explanation: mf.explanation
+    });
+  }
+
+  // 6. Code pattern checks across files
   const fileObservations = analyzePackageFiles(files);
   for (const f of fileObservations) {
     observations.push({

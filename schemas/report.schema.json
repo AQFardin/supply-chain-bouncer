@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BouncerReport",
+  "description": "Structured investigation and evidence report produced by Supply Chain Bouncer",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runId",
+    "subjectDigest",
+    "generatedAt",
+    "mode",
+    "collectionStatus",
+    "overallRecommendation",
+    "keyReasons",
+    "packages",
+    "observations",
+    "unknowns",
+    "reviewStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "runId": {
+      "type": "string"
+    },
+    "subjectDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["live", "fixture", "cached"]
+    },
+    "collectionStatus": {
+      "type": "string",
+      "enum": ["complete", "incomplete", "quarantine"]
+    },
+    "overallRecommendation": {
+      "type": "string",
+      "enum": ["ALLOW", "QUARANTINE", "BLOCK"]
+    },
+    "keyReasons": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "packages": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "investigations": {
+      "type": ["array", "null"],
+      "items": { "type": "object" }
+    },
+    "observations": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "reviewStatus": {
+      "type": "string"
+    },
+    "reviewCommand": {
+      "type": ["string", "null"]
+    },
+    "decision": {
+      "type": ["object", "null"]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,12 +1,16 @@
 {
   "schemaVersion": "1.0",
   "runId": "run-1790507866975-inyhaf",
-  "mode": "live",
   "subjectDigest": "098de04af3cff188ca0c8e488678471ee3575a8e94cc76c5c95ee8c7d5de7c28",
-  "scannerVersion": "0.1.0",
-  "policyDigest": "9ac90e2e12d858d260abc60195484dc04c217231ce16e9b11b1899d9fcb3b46c",
+  "generatedAt": "2026-09-27T11:37:51.969Z",
+  "mode": "live",
   "collectionStatus": "complete",
-  "incompleteReasons": [],
+  "overallRecommendation": "ALLOW",
+  "keyReasons": [
+    "No suspicious lifecycle scripts, network operations, or process calls detected.",
+    "All downloaded artifact bytes matched published registry and lockfile integrity.",
+    "Package version bump follows standard semver progression without typosquat flags."
+  ],
   "packages": [
     {
       "name": "ms",
@@ -63,35 +67,13 @@
       }
     }
   ],
+  "investigations": null,
   "observations": [],
   "unknowns": [
     "Runtime dynamic effects were not executed or observed.",
     "Full cryptographic npm provenance was not verified (adapter extension pending)."
   ],
-  "sources": [
-    {
-      "sourceType": "live",
-      "pathOrUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
-      "retrievalTime": "2026-09-27T11:17:47.151Z",
-      "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
-    },
-    {
-      "sourceType": "live",
-      "pathOrUrl": "https://registry.npmjs.org/ms",
-      "retrievalTime": "2026-09-27T11:17:47.152Z",
-      "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
-    },
-    {
-      "sourceType": "live",
-      "pathOrUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
-      "retrievalTime": "2026-09-27T11:17:47.233Z",
-      "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
-    },
-    {
-      "sourceType": "live",
-      "pathOrUrl": "https://registry.npmjs.org/picocolors",
-      "retrievalTime": "2026-09-27T11:17:47.233Z",
-      "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
-    }
-  ]
+  "reviewStatus": "Awaiting human review",
+  "reviewCommand": "node src/cli.mjs review --run \"E:\\ibm hackathon project\\supply-chain-bouncer\\reports\\demo\\live-benign\" --interactive --mode trusted-local-demo",
+  "decision": null
 }

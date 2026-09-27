@@ -48,7 +48,7 @@ export async function fetchPackageMetadata(packageName, version, options = {}) {
       return options.fixtureMetadata[packageName];
     }
 
-    // Default synthetic fixture metadata
+    // Default synthetic fixture metadata — no real network request is made
     return {
       packageName,
       version,
@@ -58,6 +58,7 @@ export async function fetchPackageMetadata(packageName, version, options = {}) {
       tarballUrl: `https://registry.npmjs.org/${packageName}/-/${packageName}-${version}.tgz`,
       integrity: 'sha512-mockFixtureIntegrity==',
       hasAttestation: false,
+      description: null,
       isSynthetic: true
     };
   }
@@ -109,6 +110,7 @@ export async function fetchPackageMetadata(packageName, version, options = {}) {
       integrity: dist.integrity || null,
       hasAttestation: Boolean(dist.attestations || dist.signatures),
       scripts: versionObj.scripts || {},
+      description: versionObj.description || doc.description || null,
       isSynthetic: false
     };
   } catch (err) {

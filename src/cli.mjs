@@ -5,10 +5,12 @@ import { resolve, join } from 'node:path';
 import { loadProjectInputs, computeSubjectDigest } from './input.mjs';
 import { compareLockfiles } from './lockfile-diff.mjs';
 import { collectEvidence } from './collector.mjs';
+import { generateReport } from './report.mjs';
 
 const USAGE = `Supply Chain Bouncer CLI (v0.1.0)
 Usage:
   bouncer scan --base <base-dir> --head <candidate-dir> [--out <run-dir>] [--mode <live|fixture>]
+  bouncer report --run <run-dir>
   bouncer help
 `;
 
@@ -17,6 +19,7 @@ export async function main(argv = process.argv.slice(2)) {
     base: { type: 'string' },
     head: { type: 'string' },
     out: { type: 'string' },
+    run: { type: 'string' },
     mode: { type: 'string', default: 'live' },
     help: { type: 'boolean', short: 'h' }
   };
@@ -107,6 +110,28 @@ export async function main(argv = process.argv.slice(2)) {
       }
     } catch (err) {
       console.error(`Scan failed: ${err.message}`);
+      process.exit(3);
+    }
+  } else if (command === 'report') {
+    const runDir = parsed.values.run;
+    if (!runDir) {
+      console.error('Error: --run directory is required for "report".');
+      process.exit(1);
+    }
+
+    try {
+      const result = await generateReport(runDir);
+      console.log('----------------------------------------------------');
+      console.log('Supply Chain Bouncer — Report Generated');
+      console.log('----------------------------------------------------');
+      console.log(`Overall Recommendation: ${result.reportData.overallRecommendation}`);
+      console.log(`Review Status:          ${result.reportData.reviewStatus}`);
+      console.log(`JSON Report:            ${result.reportJsonPath}`);
+      console.log(`HTML Report:            ${result.reportHtmlPath}`);
+      console.log('----------------------------------------------------');
+      console.log(`To record a human decision, run:\n  ${result.reportData.reviewCommand}`);
+    } catch (err) {
+      console.error(`Report generation failed: ${err.message}`);
       process.exit(3);
     }
   } else {
