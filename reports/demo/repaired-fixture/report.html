@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supply Chain Bouncer — Evidence & Review Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-allow: #10b981;
+      --accent-quarantine: #f59e0b;
+      --accent-block: #ef4444;
+      --primary: #38bdf8;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 2rem; line-height: 1.5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--surface-border); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+    h1 { font-size: 1.75rem; font-weight: 700; color: var(--text); }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+    .meta-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-allow { background: rgba(16, 185, 129, 0.2); color: var(--accent-allow); border: 1px solid var(--accent-allow); }
+    .badge-quarantine { background: rgba(245, 158, 11, 0.2); color: var(--accent-quarantine); border: 1px solid var(--accent-quarantine); }
+    .badge-block { background: rgba(239, 68, 68, 0.2); color: var(--accent-block); border: 1px solid var(--accent-block); }
+    .badge-direct { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
+    .badge-transitive { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+    .badge-change { background: var(--surface-border); color: var(--text); }
+    .badge-critical { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+    .badge-high { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
+    .badge-medium { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
+    .badge-low { background: rgba(56, 189, 248, 0.2); color: #bae6fd; }
+
+    .banner { background: var(--surface); border: 2px solid var(--surface-border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; display: flex; gap: 1.5rem; align-items: center; }
+    .banner.ALLOW { border-color: var(--accent-allow); }
+    .banner.QUARANTINE { border-color: var(--accent-quarantine); }
+    .banner.BLOCK { border-color: var(--accent-block); }
+    .verdict-tag { font-size: 1.75rem; font-weight: 800; padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-align: center; }
+    .verdict-tag.ALLOW { background: var(--accent-allow); color: #000; }
+    .verdict-tag.QUARANTINE { background: var(--accent-quarantine); color: #000; }
+    .verdict-tag.BLOCK { background: var(--accent-block); color: #fff; }
+
+    .reasons-box h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text); }
+    .reasons-box ul { margin-left: 1.25rem; font-size: 0.95rem; color: var(--text-muted); }
+    .reasons-box li { margin-bottom: 0.25rem; }
+
+    .section { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .section h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; color: var(--primary); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--surface-border); color: var(--text-muted); }
+    td { padding: 0.75rem; border-bottom: 1px solid var(--surface-border); }
+    tr:last-child td { border-bottom: none; }
+
+    .card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid var(--text-muted); }
+    .card-item.sev-critical { border-left-color: var(--accent-block); }
+    .card-item.sev-high { border-left-color: #f97316; }
+    .card-item.sev-medium { border-left-color: var(--accent-quarantine); }
+    .item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .code-snippet { background: #000; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.8rem; overflow-x: auto; margin-top: 0.5rem; color: #a5f3fc; }
+    .code-mono { font-family: monospace; font-size: 0.8rem; }
+    code { overflow-wrap: anywhere; }
+
+    .investigators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+    .investigator-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; }
+    .inv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; }
+    .finding-box { background: rgba(30, 41, 59, 0.7); padding: 0.75rem; border-radius: 0.35rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
+    .finding-box p { margin-top: 0.25rem; }
+
+    .callout { padding: 1rem; border-radius: 0.5rem; border-left: 4px solid; margin-top: 0.5rem; font-size: 0.9rem; }
+    .callout-info { background: rgba(56, 189, 248, 0.1); border-left-color: var(--primary); }
+    .terminal-box { background: #000; border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace; color: #4ade80; font-size: 0.875rem; margin-top: 0.5rem; overflow-x: auto; }
+    .text-sm { font-size: 0.75rem; }
+    .text-muted { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Supply Chain Bouncer &mdash; Dependency Review</h1>
+        <p class="subtitle">Run ID: <code>run-1790516163895-4h4aij</code> &bull; Subject: <code>b3e65cea30e10e33...</code></p>
+      </div>
+      <div class="meta-badges">
+        <span class="badge badge-allow">ALLOW</span>
+        <span class="badge badge-change">MODE: FIXTURE</span>
+        <span class="badge badge-change">STATUS: COMPLETE</span>
+      </div>
+    </header>
+
+    <!-- 1. Recommendation & Top 3 Key Reasons -->
+    <div class="banner ALLOW">
+      <div class="verdict-tag ALLOW">
+        ALLOW
+      </div>
+      <div class="reasons-box">
+        <h3>Top Findings &amp; Recommendation Rationale</h3>
+        <ul><li>No static observations were recorded in this evidence bundle.</li><li>Fixture evidence is synthetic; downloaded-artifact integrity was not verified.</li><li>Deterministic evidence collection completed successfully across all changed packages.</li></ul>
+      </div>
+    </div>
+
+    <!-- 2. Human Review & Decision Mechanism -->
+    <section class="section">
+      <h2>1. Human Review Decision Status</h2>
+      <p><strong>Current State:</strong> <span class="badge badge-allow">Awaiting human review</span></p>
+      <p class="text-muted" style="margin-top: 0.5rem;">This report is advisory. Human review and gate enforcement are not implemented yet. No installation or merge is authorized by this report.</p>
+    </section>
+
+    <!-- 3. Packages Table -->
+    <section class="section">
+      <h2>2. Changed Dependencies (0 instances)</h2>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Package Name</th>
+              <th>Change</th>
+              <th>Direct/Transitive</th>
+              <th>Version Diff</th>
+              <th>Location</th>
+              <th>Install Script</th>
+              <th>Provenance Metadata</th>
+              <th>Integrity SRI</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. Static Observations & Cited Evidence -->
+    <section class="section">
+      <h2>3. Deterministic Static Observations (0)</h2>
+      <div><p class="text-muted">Zero suspicious static patterns or integrity mismatches observed.</p></div>
+    </section>
+
+
+      <section class="section">
+        <h2>4. Coordinated Bob Investigator Results</h2>
+        <div class="investigators-grid">
+        <div class="investigator-card">
+          <div class="inv-header">
+            <h4>Role: typosquat-detective</h4>
+            <span>complete</span>
+            <span class="badge badge-allow">ALLOW</span>
+          </div>
+          <div class="inv-findings"><p class="text-muted">No findings reported by this role.</p></div>
+        </div>
+
+        <div class="investigator-card">
+          <div class="inv-header">
+            <h4>Role: provenance-auditor</h4>
+            <span>complete</span>
+            <span class="badge badge-allow">ALLOW</span>
+          </div>
+          <div class="inv-findings"><p class="text-muted">No findings reported by this role.</p></div>
+        </div>
+
+        <div class="investigator-card">
+          <div class="inv-header">
+            <h4>Role: behavior-analyst</h4>
+            <span>complete</span>
+            <span class="badge badge-allow">ALLOW</span>
+          </div>
+          <div class="inv-findings"><p class="text-muted">No findings reported by this role.</p></div>
+        </div>
+      </div>
+      </section>
+
+
+    <!-- 6. Unknowns & Coverage Limitations -->
+    <section class="section">
+      <h2>5. Coverage Limits &amp; Explicit Unknowns</h2>
+      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;"><li>Runtime dynamic effects were not executed or observed.</li><li>Full cryptographic npm provenance was not verified (adapter extension pending).</li><li>[typosquat-detective] No added or changed packages in candidate diff; no typosquatting signals detected.</li><li>[provenance-auditor] No added or changed packages in candidate diff; baseline picocolors@1.1.1 is unmodified.</li><li>[behavior-analyst] Candidate contains zero lifecycle scripts, network operations, or child process executions.</li></ul>
+      <h3 style="margin-top: 1rem;">Evidence sources</h3>
+      <ul style="margin-left: 1.25rem;"><li>No source records provided.</li></ul>
+    </section>
+
+    <!-- 7. Remediation Guidance -->
+    <section class="section">
+      <h2>6. Remediation &amp; Compatibility Guidance</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted);">
+        If a package is held under <strong>QUARANTINE</strong> or <strong>BLOCK</strong>:
+      </p>
+      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+        <li><strong>Replace:</strong> Ask Bob to recommend a reviewed alternative package with matching functionality.</li>
+        <li><strong>Rollback:</strong> Remove the dependency declaration and revert lockfile changes with scripts disabled.</li>
+        <li><strong>Review with Rationale:</strong> Document any benign explanation. Missing evidence and integrity violations must be resolved before approval.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0",
+  "runId": "run-1790517315626-cjglpm",
+  "subjectDigest": "faaa31b5704bd82fbaa0c47ef392c2b776366f1af38cfeb170cce370604e1dfe",
+  "generatedAt": "2026-09-27T13:57:17.390Z",
+  "mode": "fixture",
+  "collectionStatus": "complete",
+  "overallRecommendation": "QUARANTINE",
+  "keyReasons": [
+    "All three Bob investigations must complete before an ALLOW recommendation.",
+    "mock-native-binding (LIFECYCLE_SCRIPT_ADDED): Newly introduced lifecycle script \"install\": \"node-gyp rebuild\". Review installation behavior.",
+    "Deterministic evidence collection completed successfully across all changed packages."
+  ],
+  "packages": [
+    {
+      "name": "mock-native-binding",
+      "version": "1.0.0",
+      "previousVersion": null,
+      "location": "node_modules/mock-native-binding",
+      "changeType": "added",
+      "isDirect": true,
+      "isDev": false,
+      "isOptional": false,
+      "resolved": "https://registry.npmjs.org/mock-native-binding/-/mock-native-binding-1.0.0.tgz",
+      "integrity": "sha512-mockLegitimateIntegrityString1234567890abcdefghijklmnopqrstuvwxyz==",
+      "previousIntegrity": null,
+      "hasInstallScript": true,
+      "scripts": {
+        "install": "node-gyp rebuild"
+      },
+      "unsupported": false,
+      "unsupportedReason": null,
+      "provenance": {
+        "publishedAt": "2026-09-01T00:00:00.000Z",
+        "maintainersCount": 1,
+        "repositoryUrl": "https://github.com/example/mock-repo",
+        "hasAttestation": false,
+        "tarballUrl": "https://registry.npmjs.org/mock-native-binding/-/mock-native-binding-1.0.0.tgz",
+        "isSynthetic": true
+      }
+    },
+    {
+      "name": "picocolors",
+      "version": "1.1.1",
+      "previousVersion": "1.1.1",
+      "location": "node_modules/picocolors",
+      "changeType": "unchanged",
+      "isDirect": true,
+      "isDev": false,
+      "isOptional": false,
+      "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+      "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegN536lNzk469YN14WOMVL62n30R6U8FL08HT8MFHg==",
+      "previousIntegrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegN536lNzk469YN14WOMVL62n30R6U8FL08HT8MFHg==",
+      "hasInstallScript": false,
+      "scripts": null,
+      "unsupported": false,
+      "unsupportedReason": null
+    }
+  ],
+  "investigations": null,
+  "investigationComplete": false,
+  "observations": [
+    {
+      "id": "obs-mock-native-binding-script-1",
+      "packageLocation": "node_modules/mock-native-binding",
+      "packageName": "mock-native-binding",
+      "ruleId": "LIFECYCLE_SCRIPT_ADDED",
+      "severity": "medium",
+      "evidenceRef": "package.json#scripts.install",
+      "explanation": "Newly introduced lifecycle script \"install\": \"node-gyp rebuild\". Review installation behavior."
+    }
+  ],
+  "sources": [
+    {
+      "sourceType": "fixture",
+      "pathOrUrl": "fixture:mock-native-binding@1.0.0",
+      "retrievalTime": "2026-09-27T13:55:15.627Z",
+      "contentDigest": "sha256-fixture-files:8f0a9f5e7df490d31283c29e55aaa9471ebd64dd499763d606f81637b97d5601"
+    },
+    {
+      "sourceType": "synthetic",
+      "pathOrUrl": "https://registry.npmjs.org/mock-native-binding",
+      "retrievalTime": "2026-09-27T13:55:15.627Z",
+      "contentDigest": "sha256-metadata:ec102d0419f3f1fc6c145929e4e08cde4014f7d9dafb1271de3bc0289adb0f29"
+    }
+  ],
+  "unknowns": [
+    "Runtime dynamic effects were not executed or observed.",
+    "Full cryptographic npm provenance was not verified (adapter extension pending).",
+    "Missing Bob investigation: typosquat-detective",
+    "Missing Bob investigation: provenance-auditor",
+    "Missing Bob investigation: behavior-analyst"
+  ],
+  "reviewStatus": "Awaiting complete Bob investigations",
+  "reviewCommand": null,
+  "decision": null
+}

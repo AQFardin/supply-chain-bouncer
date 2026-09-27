@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.1",
+  "mode": "trusted-local-demo",
+  "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+  "decision": "ALLOW",
+  "reason": "Suspicious package mock-telemetry-reporter removed by Bob; candidate dependencies are clean and verified.",
+  "reviewerLabel": "lead-security-reviewer",
+  "createdAt": "2026-09-27T13:47:58.076Z"
+}

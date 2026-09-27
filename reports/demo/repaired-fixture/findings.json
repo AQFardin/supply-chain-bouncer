@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+  "evidencePath": "reports/demo/repaired-fixture/evidence.json",
+  "generatedAt": "2026-09-27T13:38:00.000Z",
+  "investigations": [
+    {
+      "schemaVersion": "1.0",
+      "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+      "role": "typosquat-detective",
+      "status": "complete",
+      "recommendation": "ALLOW",
+      "findings": [],
+      "unknowns": [
+        "No added or changed packages in candidate diff; no typosquatting signals detected."
+      ]
+    },
+    {
+      "schemaVersion": "1.0",
+      "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+      "role": "provenance-auditor",
+      "status": "complete",
+      "recommendation": "ALLOW",
+      "findings": [],
+      "unknowns": [
+        "No added or changed packages in candidate diff; baseline picocolors@1.1.1 is unmodified."
+      ]
+    },
+    {
+      "schemaVersion": "1.0",
+      "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+      "role": "behavior-analyst",
+      "status": "complete",
+      "recommendation": "ALLOW",
+      "findings": [],
+      "unknowns": [
+        "Candidate contains zero lifecycle scripts, network operations, or child process executions."
+      ]
+    }
+  ],
+  "aggregateRecommendation": "ALLOW",
+  "investigationComplete": true
+}

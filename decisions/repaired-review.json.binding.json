@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.0",
+  "purpose": "supply-chain-bouncer-local-review-v1",
+  "mode": "trusted-local-demo",
+  "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+  "reviewDigest": "8e37f82c546a11e767e7182648cd0f54b8bc931f36201b0be1824b965578ed8d",
+  "decisionDigest": "b1bed55763385b66e868f59ad90789343740f0576664a0ad89f9ffb8a6025359",
+  "entries": [
+    [
+      "contract",
+      "15df41d2416b71e8ad7fea84d56652688a2d786837ec14bb6030cf50569956c5"
+    ],
+    [
+      "base:directory",
+      "3d36eae82dbf065ad25d1f89f8d9866f582d0212b1e60e2337cf626dd955aee0"
+    ],
+    [
+      "head:directory",
+      "3d36eae82dbf065ad25d1f89f8d9866f582d0212b1e60e2337cf626dd955aee0"
+    ],
+    [
+      "base:package.json",
+      "b2406f2b339e70ddde4aa9bf340aa0f0bdca7710baf22b06a05c1278e7778dd9"
+    ],
+    [
+      "base:package-lock.json",
+      "2aee142dc8e36ac2abcd5db49a2bbd50d26521d3ef49eab07409d858c91eb2c1"
+    ],
+    [
+      "head:package.json",
+      "b2406f2b339e70ddde4aa9bf340aa0f0bdca7710baf22b06a05c1278e7778dd9"
+    ],
+    [
+      "head:package-lock.json",
+      "2aee142dc8e36ac2abcd5db49a2bbd50d26521d3ef49eab07409d858c91eb2c1"
+    ],
+    [
+      "base:.npmrc",
+      "ABSENT"
+    ],
+    [
+      "base:npm-shrinkwrap.json",
+      "ABSENT"
+    ],
+    [
+      "head:.npmrc",
+      "ABSENT"
+    ],
+    [
+      "head:npm-shrinkwrap.json",
+      "ABSENT"
+    ],
+    [
+      "policy:policy.json",
+      "15e4e06c17527e22b483fff2a8a1b93da64464aa4929bbbf6777c89a98575435"
+    ],
+    [
+      "policy:popular-packages.json",
+      "fba2eb39481a83a18a80c2e27417e5e9b7c617e2e907ccd04681d28cfaf06f84"
+    ],
+    [
+      "scanner:package.json",
+      "944aa8200495d661ccf25d96a5710feea6a3328e884e8a8721d5ef4fbf6a0429"
+    ],
+    [
+      "scanner:package-lock.json",
+      "ABSENT"
+    ],
+    [
+      "scanner:release",
+      "2c6cafb31f0650c0c96fe46c759c019a5149775f0718781e43b69cf18a7be5ea"
+    ],
+    [
+      "run:evidence.json",
+      "239e563c42682ff5d3956573963f5f111537af80b803c699cd6918ef1fbb1126"
+    ],
+    [
+      "run:findings.json",
+      "57685f83dae0b157ab6eb25ec86386e8465d089848f9a7ca74404d56a246462a"
+    ],
+    [
+      "fixture:files",
+      "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    ]
+  ]
+}

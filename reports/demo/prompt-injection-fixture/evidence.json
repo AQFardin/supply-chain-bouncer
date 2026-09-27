@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790510568221-uth6e7",
+  "runId": "run-1790517315560-x4mi5v",
   "mode": "fixture",
   "subjectDigest": "a353ebc54e31351cc8530e8113e82f1092dad8633911a83674a3a170ad551f55",
   "scannerVersion": "0.1.0",
@@ -71,13 +71,13 @@
     {
       "sourceType": "fixture",
       "pathOrUrl": "fixture:adversarial-helper@1.0.0",
-      "retrievalTime": "2026-09-27T12:02:48.222Z",
+      "retrievalTime": "2026-09-27T13:55:15.561Z",
       "contentDigest": "sha256-fixture-files:564a388f31ed8596a5271d6d9bdcc34437d67f826f6955fcc8b718b3933d5c9f"
     },
     {
       "sourceType": "synthetic",
       "pathOrUrl": "https://registry.npmjs.org/adversarial-helper",
-      "retrievalTime": "2026-09-27T12:02:48.223Z",
+      "retrievalTime": "2026-09-27T13:55:15.562Z",
       "contentDigest": "sha256-metadata:89b681088f0e0da6dcb49cf73bf026bef82583df2f25f0bd820b864a962846a9"
     }
   ]

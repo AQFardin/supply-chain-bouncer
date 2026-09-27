@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "runId": "run-1790516163895-4h4aij",
+  "mode": "fixture",
+  "subjectDigest": "b3e65cea30e10e33435d78739e07af2d3b2f480639ef76a360910fea11b0cbc4",
+  "scannerVersion": "0.1.0",
+  "policyDigest": "9ac90e2e12d858d260abc60195484dc04c217231ce16e9b11b1899d9fcb3b46c",
+  "collectionStatus": "complete",
+  "incompleteReasons": [],
+  "packages": [
+    {
+      "name": "picocolors",
+      "version": "1.1.1",
+      "previousVersion": "1.1.1",
+      "location": "node_modules/picocolors",
+      "changeType": "unchanged",
+      "isDirect": true,
+      "isDev": false,
+      "isOptional": false,
+      "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+      "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegN536lNzk469YN14WOMVL62n30R6U8FL08HT8MFHg==",
+      "previousIntegrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegN536lNzk469YN14WOMVL62n30R6U8FL08HT8MFHg==",
+      "hasInstallScript": false,
+      "scripts": null,
+      "unsupported": false,
+      "unsupportedReason": null
+    }
+  ],
+  "observations": [],
+  "unknowns": [
+    "Runtime dynamic effects were not executed or observed.",
+    "Full cryptographic npm provenance was not verified (adapter extension pending)."
+  ],
+  "sources": []
+}
