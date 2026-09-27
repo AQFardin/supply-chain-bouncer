@@ -8,7 +8,7 @@ Repository setup is complete. The scanner, Bob investigation workflow, reports, 
 
 ## Development setup
 
-Use Node.js 24 and npm. Open this repository in Bob IDE and sign into your hackathon-provisioned account for Bob work.
+Developed and tested with **Node.js v24.12.0** and **npm 11.6.2**. Open this repository in Bob IDE and sign into your hackathon-provisioned account for Bob work.
 
 ```text
 git clone https://github.com/AQFardin/supply-chain-bouncer.git
@@ -28,7 +28,9 @@ The project uses JavaScript ES modules. No package dependencies are declared yet
 | `schemas/` | Evidence, investigation, and decision formats |
 | `policy/` | Review rules and reference data |
 | `examples/sample-app/` | Small application used for the demonstration |
-| `fixtures/` | Harmless, clearly labelled test and demonstration inputs |
+| `fixtures/` | Harmless, clearly labelled test and demonstration inputs (benign, suspicious, legitimate-install-script, prompt-injection, malformed) |
+| `decisions/` | Recorded human review decisions and envelope files |
+| `reports/demo/` | Sanitized demonstration reports (JSON and HTML) |
 | `.bob/agents/` | Investigator role instructions |
 | `.bob/skills/supply-chain-bouncer/` | Reusable Bob investigation workflow |
 | `docs/` | Architecture, evaluation, and submission notes |
