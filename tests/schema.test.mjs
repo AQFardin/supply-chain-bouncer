@@ -3,68 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-/**
- * Recursive pure Node.js JSON schema validator supporting type, enum, pattern, required,
- * properties, items, and strict additionalProperties: false.
- */
-export function validateAgainstSchema(schema, data, path = '$') {
-  if (schema.type) {
-    const allowedTypes = Array.isArray(schema.type) ? schema.type : [schema.type];
-    const isInt = typeof data === 'number' && Number.isInteger(data);
-    const actualType = data === null ? 'null' : Array.isArray(data) ? 'array' : typeof data;
-    const typeMatches = allowedTypes.includes(actualType) || (allowedTypes.includes('integer') && isInt) || (allowedTypes.includes('number') && typeof data === 'number');
-    if (!typeMatches) {
-      throw new Error(`Validation error at ${path}: expected ${allowedTypes.join('|')}, got ${actualType}`);
-    }
-  }
-
-  if (schema.enum && !schema.enum.includes(data)) {
-    throw new Error(`Validation error at ${path}: value "${data}" is not in enum [${schema.enum.join(', ')}]`);
-  }
-
-  if (schema.pattern && typeof data === 'string') {
-    const regex = new RegExp(schema.pattern);
-    if (!regex.test(data)) {
-      throw new Error(`Validation error at ${path}: "${data}" does not match pattern ${schema.pattern}`);
-    }
-  }
-
-  if (schema.type === 'object' || (Array.isArray(schema.type) && schema.type.includes('object'))) {
-    if (data && typeof data === 'object' && !Array.isArray(data)) {
-      if (schema.required) {
-        for (const reqKey of schema.required) {
-          if (!(reqKey in data)) {
-            throw new Error(`Validation error at ${path}: missing required property "${reqKey}"`);
-          }
-        }
-      }
-
-      if (schema.additionalProperties === false && schema.properties) {
-        for (const key of Object.keys(data)) {
-          if (!(key in schema.properties)) {
-            throw new Error(`Validation error at ${path}: undeclared property "${key}" violates additionalProperties: false`);
-          }
-        }
-      }
-
-      if (schema.properties) {
-        for (const [key, propSchema] of Object.entries(schema.properties)) {
-          if (key in data) {
-            validateAgainstSchema(propSchema, data[key], `${path}.${key}`);
-          }
-        }
-      }
-    }
-  }
-
-  if (schema.type === 'array' || (Array.isArray(schema.type) && schema.type.includes('array'))) {
-    if (Array.isArray(data) && schema.items) {
-      for (let i = 0; i < data.length; i++) {
-        validateAgainstSchema(schema.items, data[i], `${path}[${i}]`);
-      }
-    }
-  }
-}
+import { validateAgainstSchema } from '../src/validation.mjs';
 
 describe('Schema Contracts and Instance Validation', () => {
   it('validates evidence.schema.json structure', async () => {

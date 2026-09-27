@@ -40,7 +40,7 @@ describe('Static Evidence Collector Tests', () => {
     assert.equal(suspiciousPkg.provenance.isSynthetic, true);
   });
 
-  it('collects evidence for live public benign package with preserved provenance', async () => {
+  it('collects evidence for live public benign package with preserved provenance', { skip: process.env.BOUNCER_LIVE_TESTS !== '1' }, async () => {
     const base = await loadProjectInputs(BENIGN_BASE, 'base');
     const head = await loadProjectInputs(BENIGN_HEAD, 'head');
     const diff = compareLockfiles(base.lockfile, head.lockfile);
@@ -89,7 +89,11 @@ describe('Static Evidence Collector Tests', () => {
     assert.match(missingObs.explanation, /Missing required integrity hash/);
   });
 
-  it('flags artifact URL discrepancy between lockfile resolved URL and registry tarball URL', async () => {
+  it('flags artifact URL discrepancy between lockfile resolved URL and registry tarball URL', async (t) => {
+    t.mock.method(globalThis, 'fetch', async url => {
+      if (String(url).endsWith('.tgz')) return new Response('', {status:404});
+      return Response.json({versions:{'2.1.3':{dist:{tarball:'https://registry.npmjs.org/ms/-/ms-2.1.3.tgz'}}}});
+    });
     const diffDiscrepancy = {
       packages: [
         {
@@ -114,6 +118,34 @@ describe('Static Evidence Collector Tests', () => {
   });
 
   // --- Regression tests for evidence-collection corrections ---
+
+  it('marks absent live artifact URLs incomplete and hashes metadata content', async (t) => {
+    const metadata = {versions:{'1.0.0':{description:'test metadata',dist:{}}}};
+    t.mock.method(globalThis, 'fetch', async () => Response.json(metadata));
+    const evidence=await collectEvidence({packages:[{name:'test',version:'1.0.0',location:'node_modules/test',changeType:'added',integrity:'sha512-placeholder'}]},'a'.repeat(64));
+    assert.equal(evidence.collectionStatus,'incomplete');
+    assert.match(evidence.incompleteReasons.join(' '), /No artifact URL/);
+    const { fetchPackageMetadata } = await import('../src/registry.mjs');
+    const first=await fetchPackageMetadata('test','1.0.0');
+    metadata.versions['1.0.0'].description='changed metadata';
+    const second=await fetchPackageMetadata('test','1.0.0');
+    assert.match(first.contentDigest,/^sha256-metadata:[a-f0-9]{64}$/);
+    assert.notEqual(first.contentDigest,second.contentDigest);
+  });
+
+  it('changes fixture digest with content and avoids ambiguous file-set encodings', async () => {
+    const pkg={name:'test',version:'1.0.0',location:'node_modules/test',changeType:'added',integrity:'sha512-placeholder'};
+    const inspect=async files => (await collectEvidence({packages:[{...pkg}]},'a'.repeat(64),{mode:'fixture',fixtureFiles:{test:files}})).sources[0].contentDigest;
+    const first=await inspect([{path:'a',content:'x\nb:y'}]);
+    const second=await inspect([{path:'a',content:'x'},{path:'b',content:'y'}]);
+    assert.notEqual(first,second);
+    assert.equal(second,await inspect([{path:'b',content:'y'},{path:'a',content:'x'}]));
+  });
+
+  it('does not substitute another scenario when candidate fixture files are missing', async () => {
+    const evidence=await collectEvidence({packages:[{name:'mock-telemetry-reporter',version:'1.0.0',location:'node_modules/mock-telemetry-reporter',changeType:'added',integrity:'sha512-placeholder'}]},'a'.repeat(64),{mode:'fixture',headDir:'fixtures/benign/head'});
+    assert.equal(evidence.collectionStatus,'incomplete');
+  });
 
   it('regression: fixture contentDigest is a real SHA-256 of inspected files, not a placeholder', async () => {
     const base = await loadProjectInputs(SUSPICIOUS_BASE, 'base');

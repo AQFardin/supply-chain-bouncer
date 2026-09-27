@@ -87,7 +87,8 @@ export async function fetchPackageMetadata(packageName, version, options = {}) {
       throw new Error(`Registry responded with HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const doc = await response.json();
+    const rawMetadata = await response.text();
+    const doc = JSON.parse(rawMetadata);
     const versionObj = doc.versions && doc.versions[version];
 
     if (!versionObj) {
@@ -108,7 +109,9 @@ export async function fetchPackageMetadata(packageName, version, options = {}) {
         : (versionObj.repository && versionObj.repository.url) || null,
       tarballUrl: dist.tarball || null,
       integrity: dist.integrity || null,
-      hasAttestation: Boolean(dist.attestations || dist.signatures),
+      hasAttestation: Boolean(dist.attestations),
+      description: versionObj.description || null,
+      contentDigest: `sha256-metadata:${createHash('sha256').update(rawMetadata).digest('hex')}`,
       scripts: versionObj.scripts || {},
       description: versionObj.description || doc.description || null,
       isSynthetic: false

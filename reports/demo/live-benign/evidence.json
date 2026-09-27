@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790507866975-inyhaf",
+  "runId": "run-1790510569512-zdvxxf",
   "mode": "live",
   "subjectDigest": "098de04af3cff188ca0c8e488678471ee3575a8e94cc76c5c95ee8c7d5de7c28",
   "scannerVersion": "0.1.0",
@@ -32,7 +32,7 @@
         "publishedAt": "2020-12-08T13:54:35.223Z",
         "maintainersCount": 6,
         "repositoryUrl": "git+https://github.com/vercel/ms.git",
-        "hasAttestation": true,
+        "hasAttestation": false,
         "tarballUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
         "isSynthetic": false
       }
@@ -57,7 +57,7 @@
         "publishedAt": "2024-10-16T18:20:03.921Z",
         "maintainersCount": 1,
         "repositoryUrl": "git+https://github.com/alexeyraspopov/picocolors.git",
-        "hasAttestation": true,
+        "hasAttestation": false,
         "tarballUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
         "isSynthetic": false
       }
@@ -72,26 +72,26 @@
     {
       "sourceType": "live",
       "pathOrUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
-      "retrievalTime": "2026-09-27T11:17:47.151Z",
+      "retrievalTime": "2026-09-27T12:02:49.637Z",
       "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
     },
     {
       "sourceType": "live",
       "pathOrUrl": "https://registry.npmjs.org/ms",
-      "retrievalTime": "2026-09-27T11:17:47.152Z",
-      "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
+      "retrievalTime": "2026-09-27T12:02:49.638Z",
+      "contentDigest": "sha256-metadata:a594a3e5b5e1adc7c4453ea84815f1d2c275de380ac24303000c439f55aabb60"
     },
     {
       "sourceType": "live",
       "pathOrUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
-      "retrievalTime": "2026-09-27T11:17:47.233Z",
+      "retrievalTime": "2026-09-27T12:02:49.704Z",
       "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
     },
     {
       "sourceType": "live",
       "pathOrUrl": "https://registry.npmjs.org/picocolors",
-      "retrievalTime": "2026-09-27T11:17:47.233Z",
-      "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
+      "retrievalTime": "2026-09-27T12:02:49.704Z",
+      "contentDigest": "sha256-metadata:6d25362e0a56809b0bd10cabc19426363c8f9f10883c4b0d4242c7d8e0767ad9"
     }
   ]
 }

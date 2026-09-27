@@ -1,5 +1,44 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { loadSchema, validateAgainstSchema } from './validation.mjs';
+
+const roles = ['typosquat-detective', 'provenance-auditor', 'behavior-analyst'];
+const contracts = Object.fromEntries(['evidence', 'findings', 'investigation', 'decision', 'report'].map(name => [name, loadSchema(name)]));
+const mostRestrictive = values => values.includes('BLOCK') ? 'BLOCK' : values.includes('QUARANTINE') ? 'QUARANTINE' : 'ALLOW';
+
+function validateReportInputs(evidence, findings, decision) {
+  validateAgainstSchema(contracts.evidence, evidence, 'evidence');
+  if (findings) {
+    validateAgainstSchema(contracts.findings, findings, 'findings');
+    if (findings.subjectDigest !== evidence.subjectDigest) throw new Error('Findings subjectDigest does not match evidence');
+    const seen = new Set();
+    const refs = new Set(evidence.observations.map(o => o.id));
+    for (const pkg of evidence.packages) {
+      refs.add(`evidence.packages[${pkg.location}]`);
+      if (evidence.packages.filter(p => p.name === pkg.name).length === 1) refs.add(`evidence.packages[${pkg.name}]`);
+    }
+    evidence.sources.forEach((_, i) => refs.add(`evidence.sources[${i}]`));
+    for (const inv of findings.investigations) {
+      validateAgainstSchema(contracts.investigation, inv, `investigation:${inv.role}`);
+      if (inv.subjectDigest !== evidence.subjectDigest) throw new Error('Investigation subjectDigest does not match evidence');
+      if (seen.has(inv.role)) throw new Error(`Duplicate investigator role: ${inv.role}`);
+      seen.add(inv.role);
+      if (inv.status === 'complete' && evidence.packages.some(pkg => ['added', 'changed'].includes(pkg.changeType)) && !inv.findings.length) {
+        throw new Error(`Completed investigator ${inv.role} must provide evidence-backed findings for changed packages`);
+      }
+      for (const finding of inv.findings) {
+        if (!finding.evidenceIds.length || finding.evidenceIds.some(id => !refs.has(id))) {
+          throw new Error(`Finding ${finding.id} must cite existing evidence references`);
+        }
+      }
+    }
+  }
+  if (decision) {
+    validateAgainstSchema(contracts.decision, decision, 'decision');
+    if (decision.subjectDigest !== evidence.subjectDigest) throw new Error('Decision subjectDigest does not match evidence');
+    if (decision.mode !== 'trusted-local-demo') throw new Error('Signed decisions are not verified by this implementation');
+  }
+}
 
 /**
  * Escapes characters that have special meaning in HTML to prevent XSS.
@@ -54,9 +93,8 @@ export function deriveKeyReasons(evidence, findings = null) {
   // 3. Fallbacks if clean or fewer reasons
   if (reasons.length === 0) {
     if (evidence.collectionStatus === 'complete' && evidence.observations.length === 0) {
-      reasons.push('No suspicious lifecycle scripts, network operations, or process calls detected.');
-      reasons.push('All downloaded artifact bytes matched published registry and lockfile integrity.');
-      reasons.push('Package version bump follows standard semver progression without typosquat flags.');
+      reasons.push('No static observations were recorded in this evidence bundle.');
+      reasons.push(evidence.mode === 'fixture' ? 'Fixture evidence is synthetic; downloaded-artifact integrity was not verified.' : 'See the source records for collected evidence; an absence of findings is not a guarantee of safety.');
     } else if (evidence.incompleteReasons && evidence.incompleteReasons.length > 0) {
       for (const inc of evidence.incompleteReasons) {
         if (reasons.length >= 3) break;
@@ -85,38 +123,30 @@ export function deriveKeyReasons(evidence, findings = null) {
  * @returns {object} Report data conforming to schemas/report.schema.json
  */
 export function buildReportData(evidence, findings = null, decision = null, runDir = '') {
-  // Determine overall recommendation
-  let overallRecommendation = 'ALLOW';
-
-  if (decision && decision.decision) {
-    overallRecommendation = decision.decision;
-  } else if (findings && findings.aggregateRecommendation) {
-    overallRecommendation = findings.aggregateRecommendation;
-  } else {
-    // Deterministic fallback based on evidence
-    const hasCritical = evidence.observations.some((o) => o.severity === 'critical');
-    const hasHigh = evidence.observations.some((o) => o.severity === 'high');
-    const hasMedium = evidence.observations.some((o) => o.severity === 'medium');
-
-    if (hasCritical || evidence.collectionStatus === 'quarantine') {
-      overallRecommendation = 'BLOCK';
-    } else if (hasHigh || hasMedium || evidence.collectionStatus === 'incomplete') {
-      overallRecommendation = 'QUARANTINE';
-    } else {
-      overallRecommendation = 'ALLOW';
-    }
-  }
+  validateReportInputs(evidence, findings, decision);
+  const investigations = findings?.investigations || [];
+  const investigationComplete = roles.every(role => investigations.some(inv => inv.role === role && inv.status === 'complete'));
+  const missing = roles.filter(role => !investigations.some(inv => inv.role === role));
+  const investigationUnknowns = investigations.flatMap(inv => inv.unknowns.map(u => `[${inv.role}] ${u}`));
+  const hardBlock = evidence.observations.some(o => o.ruleId === 'ARTIFACT_INTEGRITY_MISMATCH' || o.severity === 'critical');
+  const incomplete = evidence.collectionStatus !== 'complete' || evidence.incompleteReasons?.length || evidence.observations.some(o => o.ruleId === 'UNSUPPORTED_OR_INCOMPLETE');
+  // Recompute from individual outputs. A human record cannot override evidence here.
+  const overallRecommendation = mostRestrictive([
+    hardBlock ? 'BLOCK' : 'ALLOW',
+    incomplete || !investigationComplete ? 'QUARANTINE' : 'ALLOW',
+    ...investigations.map(inv => inv.recommendation)
+  ]);
 
   const keyReasons = deriveKeyReasons(evidence, findings);
+  if (!investigationComplete) keyReasons.unshift('All three Bob investigations must complete before an ALLOW recommendation.');
+  keyReasons.splice(3);
 
-  let reviewStatus = 'Awaiting human review';
+  let reviewStatus = investigationComplete ? 'Awaiting human review' : 'Awaiting complete Bob investigations';
   if (decision && decision.decision) {
-    reviewStatus = `Decided: ${decision.decision} by ${decision.reviewerLabel || 'reviewer'} (${decision.mode || 'mode'}) at ${decision.createdAt || ''}`;
+    reviewStatus = `Recorded: ${decision.decision} by ${decision.reviewerLabel} (${decision.mode}) at ${decision.createdAt}. Gate not evaluated.`;
   }
 
-  const reviewCmd = runDir
-    ? `node src/cli.mjs review --run "${runDir}" --interactive --mode trusted-local-demo`
-    : `node src/cli.mjs review --run <run-dir> --interactive --mode trusted-local-demo`;
+  const reviewCmd = null; // The interactive review CLI belongs to the next implementation phase.
 
   return {
     schemaVersion: '1.0',
@@ -128,9 +158,11 @@ export function buildReportData(evidence, findings = null, decision = null, runD
     overallRecommendation,
     keyReasons,
     packages: evidence.packages || [],
-    investigations: (findings && findings.investigations) || null,
+    investigations: findings ? investigations : null,
+    investigationComplete,
     observations: evidence.observations || [],
-    unknowns: evidence.unknowns || [],
+    sources: evidence.sources,
+    unknowns: [...new Set([...evidence.unknowns, ...(evidence.incompleteReasons || []), ...investigationUnknowns, ...missing.map(role => `Missing Bob investigation: ${role}`), ...investigations.filter(inv => inv.status !== 'complete').map(inv => `${inv.role}: ${inv.status}`)])],
     reviewStatus,
     reviewCommand: reviewCmd,
     decision: decision || null
@@ -151,7 +183,8 @@ export function renderHtmlReport(report) {
       : 'badge-quarantine';
 
   // Packages table rows
-  const packageRows = report.packages.map((pkg) => {
+  const changedPackages = report.packages.filter(pkg => pkg.changeType !== 'unchanged');
+  const packageRows = changedPackages.map((pkg) => {
     const directBadge = pkg.isDirect
       ? '<span class="badge badge-direct">DIRECT</span>'
       : '<span class="badge badge-transitive">TRANSITIVE</span>';
@@ -162,7 +195,7 @@ export function renderHtmlReport(report) {
     
     const prov = pkg.provenance || {};
     const provSummary = prov.publishedAt
-      ? `${escapeHtml(prov.publishedAt.slice(0, 10))} (${escapeHtml(prov.maintainersCount || 1)} maintainers)`
+      ? `${escapeHtml(prov.publishedAt.slice(0, 10))} (${escapeHtml(prov.maintainersCount ?? 'unknown')} maintainers)`
       : 'N/A';
 
     return `
@@ -198,6 +231,7 @@ export function renderHtmlReport(report) {
             <div class="item-body">
               <p>${escapeHtml(obs.explanation)}</p>
               ${snippetBlock}
+              ${obs.untrustedExcerpt ? `<pre class="code-snippet"><code>${escapeHtml(obs.untrustedExcerpt)}</code></pre>` : ''}
             </div>
           </div>
         `;
@@ -216,6 +250,7 @@ export function renderHtmlReport(report) {
           <p><strong>Interpretation:</strong> ${escapeHtml(f.interpretation)}</p>
           ${f.benignExplanation ? `<p class="text-muted"><strong>Benign Context:</strong> ${escapeHtml(f.benignExplanation)}</p>` : ''}
           <p><strong>Suggested Action:</strong> ${escapeHtml(f.suggestedAction)}</p>
+          <p class="text-muted"><strong>Evidence:</strong> ${escapeHtml((f.evidenceIds || []).join(', '))}</p>
         </div>
       `).join('');
 
@@ -223,6 +258,7 @@ export function renderHtmlReport(report) {
         <div class="investigator-card">
           <div class="inv-header">
             <h4>Role: ${escapeHtml(inv.role)}</h4>
+            <span>${escapeHtml(inv.status)}</span>
             <span class="badge badge-${escapeHtml(inv.recommendation.toLowerCase())}">${escapeHtml(inv.recommendation)}</span>
           </div>
           <div class="inv-findings">${findingsList || '<p class="text-muted">No findings reported by this role.</p>'}</div>
@@ -252,6 +288,7 @@ export function renderHtmlReport(report) {
 
   // Unknowns list
   const unknownsList = (report.unknowns || []).map((u) => `<li>${escapeHtml(u)}</li>`).join('');
+  const sourcesList = (report.sources || []).map(source => `<li><strong>${escapeHtml(source.sourceType)}</strong>: <code>${escapeHtml(source.pathOrUrl)}</code><br><code>${escapeHtml(source.contentDigest)}</code></li>`).join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -320,6 +357,7 @@ export function renderHtmlReport(report) {
     .item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
     .code-snippet { background: #000; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.8rem; overflow-x: auto; margin-top: 0.5rem; color: #a5f3fc; }
     .code-mono { font-family: monospace; font-size: 0.8rem; }
+    code { overflow-wrap: anywhere; }
     
     .investigators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
     .investigator-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; }
@@ -363,13 +401,12 @@ export function renderHtmlReport(report) {
     <section class="section">
       <h2>1. Human Review Decision Status</h2>
       <p><strong>Current State:</strong> <span class="badge ${recBadgeClass}">${escapeHtml(report.reviewStatus)}</span></p>
-      <p class="text-muted" style="margin-top: 0.5rem;">To record an approved, quarantined, or blocked human decision against this exact input snapshot, run the review command in your terminal:</p>
-      <div class="terminal-box">${escapeHtml(report.reviewCommand)}</div>
+      <p class="text-muted" style="margin-top: 0.5rem;">This report is advisory. Human review and gate enforcement are not implemented yet. No installation or merge is authorized by this report.</p>
     </section>
 
     <!-- 3. Packages Table -->
     <section class="section">
-      <h2>2. Changed Dependencies (${report.packages.length} instances)</h2>
+      <h2>2. Changed Dependencies (${changedPackages.length} instances)</h2>
       <div style="overflow-x: auto;">
         <table>
           <thead>
@@ -389,19 +426,20 @@ export function renderHtmlReport(report) {
       </div>
     </section>
 
-    <!-- 4. Investigator Results -->
-    ${investigationsSection}
-
     <!-- 5. Static Observations & Cited Evidence -->
     <section class="section">
       <h2>3. Deterministic Static Observations (${report.observations.length})</h2>
       <div>${observationsList}</div>
     </section>
 
+    ${investigationsSection}
+
     <!-- 6. Unknowns & Coverage Limitations -->
     <section class="section">
       <h2>5. Coverage Limits &amp; Explicit Unknowns</h2>
       <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;">${unknownsList}</ul>
+      <h3 style="margin-top: 1rem;">Evidence sources</h3>
+      <ul style="margin-left: 1.25rem;">${sourcesList || '<li>No source records provided.</li>'}</ul>
     </section>
 
     <!-- 7. Remediation Guidance -->
@@ -413,12 +451,12 @@ export function renderHtmlReport(report) {
       <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
         <li><strong>Replace:</strong> Ask Bob to recommend a reviewed alternative package with matching functionality.</li>
         <li><strong>Rollback:</strong> Remove the dependency declaration and revert lockfile changes with scripts disabled.</li>
-        <li><strong>Approve with Rationale:</strong> If the lifecycle script or observation is expected (e.g. native compilation), record an ALLOW decision citing the benign explanation.</li>
+        <li><strong>Review with Rationale:</strong> Document any benign explanation. Missing evidence and integrity violations must be resolved before approval.</li>
       </ul>
     </section>
   </div>
 </body>
-</html>`;
+</html>`.replace(/^[ \t]+$/gm, '');
 }
 
 /**
@@ -444,16 +482,23 @@ export async function generateReport(runDir) {
   try {
     const rawFindings = await readFile(join(resolvedDir, 'findings.json'), 'utf8');
     findings = JSON.parse(rawFindings);
-  } catch {}
+    if (findings === null) throw new Error('Expected a findings object, got null');
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw new Error(`Cannot read findings.json: ${err.message}`);
+  }
 
   // Read optional decision.json (from human review)
   let decision = null;
   try {
     const rawDecision = await readFile(join(resolvedDir, 'decision.json'), 'utf8');
     decision = JSON.parse(rawDecision);
-  } catch {}
+    if (decision === null) throw new Error('Expected a decision object, got null');
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw new Error(`Cannot read decision.json: ${err.message}`);
+  }
 
   const reportData = buildReportData(evidence, findings, decision, resolvedDir);
+  validateAgainstSchema(contracts.report, reportData, 'report');
   const htmlContent = renderHtmlReport(reportData);
 
   const reportJsonPath = join(resolvedDir, 'report.json');

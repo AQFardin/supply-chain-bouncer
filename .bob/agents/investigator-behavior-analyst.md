@@ -93,7 +93,9 @@ Each finding must include `id`, `evidenceIds`, `severity`, `confidence`, `observ
 
 `evidenceIds` must reference observation `id` values from `evidence.observations[]`.
 When a finding has no matching scanner observation (e.g. a new pattern you identified),
-use `evidenceIds: ["analyst-derived"]` and explain your reasoning in `interpretation`.
+cite the actual package as `evidence.packages[<location>]` or a source as
+`evidence.sources[<zero-based-index>]` and explain the inference in `interpretation`.
+Do not use invented references such as `analyst-derived`.
 
 If you cannot complete the investigation, set `status: "failed"` and
 `recommendation: "QUARANTINE"` — never default to `ALLOW`.

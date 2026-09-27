@@ -7,7 +7,7 @@ Supply Chain Bouncer reviews npm dependency changes detected in a `package-lock.
 the lockfile and the npm registry without executing target code, orchestrates three
 parallel Bob investigator subagents to reason over that evidence, and produces a
 structured investigation report. A human makes the final ALLOW / QUARANTINE / BLOCK
-decision. A local CLI gate evaluates the decision against policy.
+decision. A planned local CLI gate will evaluate the decision against policy.
 
 ---
 
@@ -19,8 +19,8 @@ decision. A local CLI gate evaluates the decision against policy.
 | Direct and transitive dependency changes | Multi-root monorepos |
 | Static evidence only — no `npm install`, no script execution | Installing or running target packages |
 | Fixture mode (harmless local files) and live mode (real npm registry) | Other registries as primary evidence |
-| `trusted-local-demo` gate mode | Remote CI enforcement |
-| Human decision recorded as JSON | Cryptographic signing (optional extension) |
+| Report rendering and validation of matching local decision records | Review menu and gate enforcement (next phase) |
+| Human decision schema | Cryptographic signing and remote CI (optional extensions) |
 | Parallel Bob subagents via skill | External AI services |
 
 ---
@@ -29,7 +29,11 @@ decision. A local CLI gate evaluates the decision against policy.
 
 | Path | Contents |
 |---|---|
-| `src/cli.mjs` | CLI entry point — `bouncer scan` command |
+| `src/cli.mjs` | CLI entry point — `scan` and `report` commands |
+| `src/report.mjs` | Validated JSON/HTML report generation |
+| `src/validation.mjs` | Runtime validation of the project's schema keywords |
+| `schemas/findings.schema.json` | Combined investigator wrapper contract |
+| `schemas/report.schema.json` | Rendered report contract |
 | `src/input.mjs` | Project input loader, SHA-256 file hasher, subject-digest computation |
 | `src/lockfile-diff.mjs` | Lockfile comparator — produces direct/transitive diff with unsupported-source detection |
 | `src/collector.mjs` | Evidence collector — registry fetch, fixture file inspection, static checks |
@@ -43,7 +47,7 @@ decision. A local CLI gate evaluates the decision against policy.
 | `policy/policy.json` | Gate policy rules |
 | `policy/popular-packages.json` | Popular package reference list for typosquat detection |
 | `policy/reviewers.json` | Reviewer identity reference |
-| `tests/*.test.mjs` | Node.js built-in test runner suites (43 tests, 0 failures) |
+| `tests/*.test.mjs` | Offline regression suites; optional live-registry test via `BOUNCER_LIVE_TESTS=1` |
 | `fixtures/` | Harmless, labelled test inputs: benign, suspicious, prompt-injection, legitimate-install-script, malformed |
 | `examples/sample-app/` | Sample application for end-to-end demonstration |
 | `reports/demo/` | Sanitized demonstration evidence bundles |
@@ -176,9 +180,12 @@ as role-instruction markdown files loaded by the skill as supporting files.
 
 ### Layer 3 — Human decisions (not yet implemented)
 
-`src/menu.mjs`, `src/reporter.mjs`, and `src/gate.mjs` are planned for the next
-implementation step. The decision envelope schema (`schemas/decision.schema.json`) and
-gate policy (`policy/policy.json`) are defined and tested.
+`src/report.mjs` is implemented. `src/menu.mjs` and `src/gate.mjs` are planned for
+the next phase. Reports validate evidence, each investigator, and optional human
+decision records. Subject digests must match; missing/failed roles cannot produce
+ALLOW. Recommendations are recomputed from individual roles with hard evidence
+constraints; a human record never overwrites that recommendation. The renderer
+does not verify current workspace inputs or enforce a gate.
 
 ---
 
@@ -197,6 +204,8 @@ Top-level required fields: `schemaVersion`, `runId`, `mode`, `subjectDigest`,
 - `"quarantine"` — at least one critical-severity observation.
 
 **`sources[].contentDigest`** labeling:
+- `sha256-metadata:<hex>` — SHA-256 of registry response bytes, or synthetic metadata
+  serialization in fixture mode. This is not downloaded-artifact integrity.
 - `sha512-<base64>` — computed SHA-512 of a downloaded artifact (live mode, verified).
 - `sha256-fixture-files:<hex>` — SHA-256 over inspected fixture file content
   (fixture mode, synthetic — NOT a verified download).
@@ -258,18 +267,18 @@ Each is flagged `"unsupported": true` in the evidence bundle.
 
 | Mode | Behaviour | Crypto |
 |---|---|---|
-| `trusted-local-demo` | Accepts any structurally valid decision with the mode label | None |
+| `trusted-local-demo` (planned) | Requires current input hashes, complete evidence and investigators, policy checks, and explicit human approval | None |
 | `signed-local` (optional) | HMAC-SHA256 over decision envelope, 1-hour TTL, key from env | Symmetric key |
 
 Canonical JSON serialisation is not implemented. Canonical JSON is not planned.
 
 ---
 
-## Optional extensions (not implemented)
+## Remaining implementation
 
-- `src/reporter.mjs` — HTML + text report from `findings.json`.
+- `src/report.mjs` — JSON and escaped HTML reports are implemented; real Bob findings still require a rehearsal in Bob IDE.
 - `src/menu.mjs` — Terminal review menu capturing human ALLOW / QUARANTINE / BLOCK.
 - `src/gate.mjs` — Local gate: checks current input hashes, evidence completeness,
   all required investigator outputs, policy, and human approval. Exits 0 or 1.
-- Signed decisions: HMAC-SHA256, 1-hour TTL, key from env.
+- Optional signed decisions: HMAC-SHA256, 1-hour TTL, key from env. Signed records are rejected until verification is implemented.
 - GitHub status check: POST to GitHub Checks API (separate readiness check required first).

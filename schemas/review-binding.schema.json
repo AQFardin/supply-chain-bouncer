@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LocalReviewBinding",
+  "type": "object",
+  "required": ["schemaVersion", "purpose", "mode", "subjectDigest", "reviewDigest", "decisionDigest", "entries"],
+  "properties": {
+    "schemaVersion": {"type": "string", "enum": ["1.0"]},
+    "purpose": {"type": "string", "enum": ["supply-chain-bouncer-local-review-v1"]},
+    "mode": {"type": "string", "enum": ["trusted-local-demo"]},
+    "subjectDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "reviewDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "decisionDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "entries": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}}
+  },
+  "additionalProperties": false
+}

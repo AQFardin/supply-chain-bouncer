@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790507874694-oplu0p",
+  "runId": "run-1790510566928-7y1b62",
   "mode": "fixture",
   "subjectDigest": "8c25337c586380ee70dd7aa67bb9c9ead5790defaf62183485523ac9ca6dfd27",
   "scannerVersion": "0.1.0",
@@ -117,14 +117,14 @@
     {
       "sourceType": "fixture",
       "pathOrUrl": "fixture:mock-telemetry-reporter@1.0.0",
-      "retrievalTime": "2026-09-27T11:17:54.703Z",
-      "contentDigest": "sha256-fixture-files:431276d13b9dc77ae6091c71f8e567d626cd1e8a3d9e4700d96e05db01642096"
+      "retrievalTime": "2026-09-27T12:02:46.930Z",
+      "contentDigest": "sha256-fixture-files:f912cf345d3a38e2a1d987044c2b95a96e799d1c241ca9f1a7c1365df4cfcb80"
     },
     {
       "sourceType": "synthetic",
       "pathOrUrl": "https://registry.npmjs.org/mock-telemetry-reporter",
-      "retrievalTime": "2026-09-27T11:17:54.703Z",
-      "contentDigest": "sha512-mockFixtureIntegrity=="
+      "retrievalTime": "2026-09-27T12:02:46.930Z",
+      "contentDigest": "sha256-metadata:de5f29eb51f5a55d903707d17cdd4a31d0db48e0f8dd5e4c5ce4ca5c6b586682"
     }
   ]
 }

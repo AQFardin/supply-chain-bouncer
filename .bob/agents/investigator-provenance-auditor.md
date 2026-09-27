@@ -32,6 +32,8 @@ You will receive:
      `integrity` field.
 
 3. **Integrity consistency check** — for packages with `sourceType: "live"` sources:
+   - Match the source URL to this package's resolved artifact URL before comparing hashes.
+     A `sha256-metadata:` digest hashes registry response content, not a tarball.
    - If `sources[].contentDigest` matches `packages[].integrity`, note this as a positive
      signal (hashes consistent).
    - If they differ, this is a high-severity finding (`ARTIFACT_INTEGRITY_MISMATCH`).
@@ -43,8 +45,8 @@ You will receive:
    - `maintainersCount`: drop from previous maintainer count is a risk signal
      (not always available in evidence, note as unknown if absent).
    - `repositoryUrl`: absent or `null` is a weak negative signal.
-   - `hasAttestation`: `true` is a positive signal, `false` is a neutral signal (not all
-     packages have attestations).
+   - `hasAttestation`: records presence only, not verified provenance. Registry signatures
+     alone are not provenance attestations. Record verification as unknown.
    - `isSynthetic: true`: means the provenance data is from a fixture, not a real registry
      query. Lower your confidence accordingly and note this explicitly.
 
@@ -89,6 +91,9 @@ unknowns       array — provenance checks that could not be performed
 
 Each finding must include `id`, `evidenceIds`, `severity`, `confidence`, `observation`,
 `interpretation`, `benignExplanation` (string or null), `suggestedAction`.
+
+For `evidenceIds`, cite existing observation IDs, `evidence.packages[<location>]`,
+or `evidence.sources[<zero-based-index>]`. Never invent source references.
 
 If you cannot complete the investigation, set `status: "failed"` and
 `recommendation: "QUARANTINE"` — never default to `ALLOW`.

@@ -83,7 +83,7 @@ by the skill — not free-standing persona files (no such Bob concept exists).
 - `tests/schema.test.mjs` — 5 tests: evidence schema structure, investigation schema
   structure, decision schema structure, real bundle validation, additionalProperties rejection.
 
-**Total: 43 tests, 0 failures.**
+The original test counts below describe the scanner milestone. Run `npm test` for current results, including report regression tests. Live network smoke tests are opt-in via `BOUNCER_LIVE_TESTS=1`.
 
 ---
 
@@ -146,25 +146,21 @@ by the skill — not free-standing persona files (no such Bob concept exists).
 
 ## Sub-Task 6 — Report Writer
 
-**Status**: [ ] pending
+**Status**: [x] done (roadmap step 10)
 
-### Intent
+Implemented in `src/report.mjs`, exposed by `bouncer report --run <dir>`.
+Produces `report.json` and escaped, offline `report.html` under the run directory.
+Validates evidence, the combined findings wrapper, each investigator output, and
+optional decision records. Rejects stale digests, duplicate roles, invented
+citations, malformed optional files, and unverified signed decisions.
 
-Implement `src/reporter.mjs`. Reads `findings.json` (produced by the Bob skill) and
-the evidence bundle, writes `report.json` conforming to `schemas/investigation.schema.json`
-aggregate view and a plain-text `report.txt` for the terminal review menu.
+The report recomputes recommendations from individual investigators. Missing or
+failed roles and incomplete evidence require at least QUARANTINE; integrity
+violations remain BLOCK. Human decisions are shown separately. No report is gate
+enforcement. The interactive review command is not implemented yet.
 
-### Expected Outcomes
-
-- `src/reporter.mjs` exports `writeReport(evidencePath, findingsPath, outputDir)`.
-- Produces `<outputDir>/report.txt` with a human-readable summary.
-- `aggregateRecommendation` surfaced in the report.
-- Schema test for generated report output.
-
-### Todo List
-
-1. Implement `writeReport` reading `findings.json` and producing `report.txt`.
-2. Add test in `tests/schema.test.mjs` or a new `tests/reporter.test.mjs`.
+Contracts: `schemas/report.schema.json`, `schemas/findings.schema.json`, and
+`schemas/investigation.schema.json`. Tests: `tests/report.test.mjs`.
 
 ---
 
@@ -261,7 +257,7 @@ The gate must check:
 
 ## Sub-Task 10 — CLI Entry Point
 
-**Status**: [x] done (scan command, evidence output)
+**Status**: [x] done (scan and report commands)
 
 ### Implemented in `src/cli.mjs`
 
@@ -271,7 +267,7 @@ The gate must check:
 - Prints observations to stdout with severity icons.
 - Reads `policy/policy.json` and `policy/popular-packages.json` (silently skips if absent).
 
-**Remaining**: integrate reporter, menu, and gate after those modules are implemented.
+**Remaining**: implement the review menu and gate. Report generation is available through `bouncer report --run <dir>`.
 
 ---
 
@@ -282,14 +278,14 @@ The gate must check:
 ### Outcomes so far
 
 - `reports/demo/live-benign/evidence.json` — live scan of benign bump (ms 2.1.2→2.1.3 + picocolors added), 0 observations, `collectionStatus: complete`. `contentDigest` values are verified SHA-512 of downloaded artifacts.
-- `reports/demo/suspicious-fixture/evidence.json` — fixture scan of mock-telemetry-reporter, 6 observations (LIFECYCLE_SCRIPT_ADDED, ENVIRONMENT_ACCESS ×2, NETWORK_OPERATION ×2, PROCESS_EXECUTION ×2). `contentDigest` is `sha256-fixture-files:<real-hex>`.
+- `reports/demo/suspicious-fixture/evidence.json` — fixture scan of mock-telemetry-reporter, 6 observations (LIFECYCLE_SCRIPT_ADDED, ENVIRONMENT_ACCESS, NETWORK_OPERATION ×2, PROCESS_EXECUTION ×2). `contentDigest` is `sha256-fixture-files:<real-hex>`.
 - `reports/demo/prompt-injection-fixture/evidence.json` — fixture scan of adversarial-helper, 1 observation (PROMPT_INJECTION_INDICATOR) with labeled `untrustedExcerpt`.
 
 ### Remaining
 
 1. Rehearse `/investigate` skill against each demo evidence bundle in the IDE.
 2. Capture sanitized Bob session screenshots to `bob_sessions/`.
-3. Implement reporter, menu, gate (Sub-Tasks 6–8) then complete end-to-end run.
+3. Run the existing report renderer after the Bob rehearsal, then implement menu and gate (Sub-Tasks 7–8) and complete the end-to-end run.
 
 ---
 
@@ -312,4 +308,4 @@ No `npm install` is needed to build or test this project.
 | `tests/input.test.mjs` | 8 | ✔ all pass |
 | `tests/lockfile-diff.test.mjs` | 9 | ✔ all pass |
 | `tests/schema.test.mjs` | 5 | ✔ all pass |
-| **Total** | **43** | **✔ 0 failures** |
+| `tests/report.test.mjs` | Report validation, aggregation, rendering, and failure cases | Offline |

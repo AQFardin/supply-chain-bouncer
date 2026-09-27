@@ -15,9 +15,9 @@ import { runStaticChecks } from './checks/index.mjs';
 function hashFileSet(files) {
   const hasher = createHash('sha256');
   // Sort by path for determinism
-  const sorted = [...files].sort((a, b) => a.path.localeCompare(b.path));
+  const sorted = [...files].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
   for (const f of sorted) {
-    hasher.update(`${f.path}:${f.content}\n`);
+    hasher.update(JSON.stringify([f.path, f.content]) + '\n');
   }
   return `sha256-${hasher.digest('hex')}`;
 }
@@ -27,24 +27,23 @@ function hashFileSet(files) {
  */
 async function readDirectoryFilesRecursively(dirPath, baseSubPath = '') {
   const files = [];
-  try {
-    const entries = await readdir(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = join(dirPath, entry.name);
-      const relPath = baseSubPath ? join(baseSubPath, entry.name) : entry.name;
-      if (entry.isDirectory()) {
-        const subFiles = await readDirectoryFilesRecursively(fullPath, relPath);
-        files.push(...subFiles);
-      } else if (entry.isFile()) {
-        const content = await readFile(fullPath, 'utf8');
-        files.push({
-          path: relPath.replace(/\\/g, '/'),
-          content,
-          size: Buffer.byteLength(content, 'utf8')
-        });
-      }
+  const entries = await readdir(dirPath, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(dirPath, entry.name);
+    const relPath = baseSubPath ? join(baseSubPath, entry.name) : entry.name;
+    if (entry.isSymbolicLink()) throw new Error(`Unsupported fixture symlink: ${relPath}`);
+    if (entry.isDirectory()) {
+      const subFiles = await readDirectoryFilesRecursively(fullPath, relPath);
+      files.push(...subFiles);
+    } else if (entry.isFile()) {
+      const content = await readFile(fullPath, 'utf8');
+      files.push({
+        path: relPath.replace(/\\/g, '/'),
+        content,
+        size: Buffer.byteLength(content, 'utf8')
+      });
     }
-  } catch {}
+  }
   return files;
 }
 
@@ -52,6 +51,9 @@ async function readDirectoryFilesRecursively(dirPath, baseSubPath = '') {
  * Discovers local fixture package files associated with candidate packages.
  */
 export async function discoverFixturePackageFiles(packageName, headDir, options = {}) {
+  if (!/^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+$/i.test(packageName) || packageName.split('/').some(p => p === '.' || p === '..')) {
+    throw new Error('Invalid fixture package name');
+  }
   // 1. Explicit fixture files supplied in options
   if (options.fixtureFiles && options.fixtureFiles[packageName]) {
     return options.fixtureFiles[packageName];
@@ -67,18 +69,24 @@ export async function discoverFixturePackageFiles(packageName, headDir, options 
   }
 
   // 3. Known fixture directories in workspace
-  candidateDirs.push(resolve('fixtures/suspicious/package-files', packageName));
-  candidateDirs.push(resolve('fixtures/legitimate-install-script/package-files', packageName));
-  candidateDirs.push(resolve('fixtures/prompt-injection/package-files', packageName));
+  if (!headDir) {
+    candidateDirs.push(resolve('fixtures/suspicious/package-files', packageName));
+    candidateDirs.push(resolve('fixtures/legitimate-install-script/package-files', packageName));
+    candidateDirs.push(resolve('fixtures/prompt-injection/package-files', packageName));
+  }
 
   for (const dir of candidateDirs) {
+    let dirStat;
     try {
-      const dirStat = await stat(dir);
-      if (dirStat.isDirectory()) {
-        const files = await readDirectoryFilesRecursively(dir);
-        if (files.length > 0) return files;
-      }
-    } catch {}
+      dirStat = await stat(dir);
+    } catch (err) {
+      if (err.code === 'ENOENT') continue;
+      throw err;
+    }
+    if (dirStat.isDirectory()) {
+      const files = await readDirectoryFilesRecursively(dir);
+      if (files.length > 0) return files;
+    }
   }
 
   return [];
@@ -93,6 +101,7 @@ export async function discoverFixturePackageFiles(packageName, headDir, options 
  */
 export async function collectEvidence(diffResult, subjectDigest, options = {}) {
   const mode = options.mode || 'live';
+  if (!['live', 'fixture'].includes(mode)) throw new Error('Unsupported evidence mode');
   const popularPackages = options.popularPackages || [];
   const policy = options.policy || {};
   const runId = options.runId || `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -206,6 +215,7 @@ export async function collectEvidence(diffResult, subjectDigest, options = {}) {
 
         // Validate artifact identity: compare lockfile resolved URL vs registry metadata tarball URL
         const targetTarballUrl = pkg.resolved || metadata.tarballUrl;
+        if (!targetTarballUrl) throw new Error(`No artifact URL available for ${pkg.name}@${pkg.version}`);
         if (pkg.resolved && metadata.tarballUrl && pkg.resolved !== metadata.tarballUrl) {
           allObservations.push({
             id: `obs-${pkg.name}-artifact-url-discrepancy`,
@@ -279,7 +289,7 @@ export async function collectEvidence(diffResult, subjectDigest, options = {}) {
         sourceType: mode === 'fixture' ? 'synthetic' : 'live',
         pathOrUrl: `https://registry.npmjs.org/${pkg.name}`,
         retrievalTime: new Date().toISOString(),
-        contentDigest: metadata.integrity || pkg.integrity || 'metadata-record'
+        contentDigest: metadata.contentDigest || `sha256-metadata:${createHash('sha256').update(JSON.stringify(metadata)).digest('hex')}`
       });
 
       // Merge package scripts if available from metadata or fixture files

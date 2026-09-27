@@ -1,7 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import {
   escapeHtml,
   deriveKeyReasons,
@@ -9,7 +10,20 @@ import {
   renderHtmlReport,
   generateReport
 } from '../src/report.mjs';
-import { validateAgainstSchema } from './schema.test.mjs';
+import { validateAgainstSchema } from '../src/validation.mjs';
+
+const digest = 'a'.repeat(64);
+const cleanEvidence = () => ({schemaVersion:'1.0', runId:'test', mode:'fixture', subjectDigest:digest, scannerVersion:'0.1.0', policyDigest:digest, collectionStatus:'complete', packages:[], observations:[], sources:[], unknowns:[]});
+const completeFindings = () => ({schemaVersion:'1.0', subjectDigest:digest, investigations:['typosquat-detective','provenance-auditor','behavior-analyst'].map(role => ({schemaVersion:'1.0', subjectDigest:digest, role, status:'complete', recommendation:'ALLOW', findings:[], unknowns:[]})), aggregateRecommendation:'ALLOW', investigationComplete:true});
+
+async function withRun(fn) {
+  const dir = await mkdtemp(join(tmpdir(), 'bouncer-report-test-'));
+  try { return await fn(dir); }
+  finally {
+    assert.ok(resolve(dir).startsWith(resolve(tmpdir()) + '\\') || resolve(dir).startsWith(resolve(tmpdir()) + '/'));
+    await rm(dir, {recursive:true, force:true});
+  }
+}
 
 describe('JSON/HTML Report Renderer Tests (Step 10)', () => {
   it('escapes malicious HTML characters to prevent XSS in reports', () => {
@@ -40,6 +54,7 @@ describe('JSON/HTML Report Renderer Tests (Step 10)', () => {
 
   it('builds valid report data structure matching schemas/report.schema.json', async () => {
     const evidence = {
+      ...cleanEvidence(),
       runId: 'test-run-123',
       subjectDigest: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       mode: 'fixture',
@@ -61,9 +76,9 @@ describe('JSON/HTML Report Renderer Tests (Step 10)', () => {
 
     const reportData = buildReportData(evidence, null, null, 'reports/demo/test-run');
     assert.equal(reportData.schemaVersion, '1.0');
-    assert.equal(reportData.overallRecommendation, 'ALLOW');
-    assert.equal(reportData.reviewStatus, 'Awaiting human review');
-    assert.ok(reportData.reviewCommand.includes('node src/cli.mjs review'));
+    assert.equal(reportData.overallRecommendation, 'QUARANTINE');
+    assert.equal(reportData.reviewStatus, 'Awaiting complete Bob investigations');
+    assert.equal(reportData.reviewCommand, null);
 
     // Validate against schemas/report.schema.json
     const schemaRaw = await readFile(resolve('schemas/report.schema.json'), 'utf8');
@@ -132,8 +147,9 @@ describe('JSON/HTML Report Renderer Tests (Step 10)', () => {
   });
 
   it('generates report.json and report.html on disk via generateReport', async () => {
-    // Generate reports for existing live-benign run
-    const result = await generateReport('reports/demo/live-benign');
+    await withRun(async dir => {
+    await writeFile(join(dir, 'evidence.json'), await readFile('reports/demo/live-benign/evidence.json'));
+    const result = await generateReport(dir);
 
     assert.ok(result.reportJsonPath.endsWith('report.json'));
     assert.ok(result.reportHtmlPath.endsWith('report.html'));
@@ -141,7 +157,7 @@ describe('JSON/HTML Report Renderer Tests (Step 10)', () => {
     const jsonOnDisk = JSON.parse(await readFile(result.reportJsonPath, 'utf8'));
     const htmlOnDisk = await readFile(result.reportHtmlPath, 'utf8');
 
-    assert.equal(jsonOnDisk.overallRecommendation, 'ALLOW');
+    assert.equal(jsonOnDisk.overallRecommendation, 'QUARANTINE');
     assert.ok(htmlOnDisk.includes('<!DOCTYPE html>'));
     assert.ok(htmlOnDisk.includes('Supply Chain Bouncer'));
 
@@ -151,5 +167,73 @@ describe('JSON/HTML Report Renderer Tests (Step 10)', () => {
     assert.doesNotThrow(() => {
       validateAgainstSchema(reportSchema, jsonOnDisk);
     });
+    });
+  });
+
+  it('requires all three completed roles and recomputes the recommendation', () => {
+    const findings = completeFindings();
+    assert.equal(buildReportData(cleanEvidence(), findings).overallRecommendation, 'ALLOW');
+    findings.investigations[2].recommendation = 'BLOCK';
+    assert.equal(buildReportData(cleanEvidence(), findings).overallRecommendation, 'BLOCK');
+    findings.investigations.pop();
+    assert.equal(buildReportData(cleanEvidence(), findings).overallRecommendation, 'QUARANTINE');
+    findings.investigations[0].status = 'failed';
+    assert.equal(buildReportData(cleanEvidence(), findings).investigationComplete, false);
+  });
+
+  it('does not let human ALLOW override missing evidence or an integrity violation', () => {
+    const decision = {schemaVersion:'1.1', mode:'trusted-local-demo', subjectDigest:digest, decision:'ALLOW', reason:'Expected behavior', reviewerLabel:'test', createdAt:new Date().toISOString()};
+    const evidence = cleanEvidence();
+    evidence.collectionStatus = 'incomplete';
+    assert.equal(buildReportData(evidence, completeFindings(), decision).overallRecommendation, 'QUARANTINE');
+    evidence.observations.push({id:'integrity',ruleId:'ARTIFACT_INTEGRITY_MISMATCH',severity:'critical',explanation:'Mismatch'});
+    assert.equal(buildReportData(evidence, completeFindings(), decision).overallRecommendation, 'BLOCK');
+  });
+
+  it('rejects stale inputs, duplicate roles, unsupported signatures, and invented citations', () => {
+    const findings = completeFindings();
+    findings.subjectDigest = 'b'.repeat(64);
+    assert.throws(() => buildReportData(cleanEvidence(), findings), /subjectDigest/);
+    findings.subjectDigest = digest;
+    findings.investigations[0].subjectDigest = 'b'.repeat(64);
+    assert.throws(() => buildReportData(cleanEvidence(), findings), /subjectDigest/);
+    findings.investigations[0].subjectDigest = digest;
+    findings.investigations[1].role = findings.investigations[0].role;
+    assert.throws(() => buildReportData(cleanEvidence(), findings), /Duplicate/);
+    const cited = completeFindings();
+    cited.investigations[0].findings = [{id:'f1',evidenceIds:['made-up'],severity:'low',confidence:'low',observation:'None',interpretation:'None',suggestedAction:'Review'}];
+    assert.throws(() => buildReportData(cleanEvidence(), cited), /references/);
+    const decision = {schemaVersion:'1.1',mode:'trusted-local-demo',subjectDigest:'b'.repeat(64),decision:'ALLOW',reason:'test',reviewerLabel:'test',createdAt:'now'};
+    assert.throws(() => buildReportData(cleanEvidence(), null, decision), /subjectDigest/);
+    decision.subjectDigest=digest; decision.mode='signed-local';
+    assert.throws(() => buildReportData(cleanEvidence(), null, decision), /Signed/);
+  });
+
+  it('does not invent integrity or semver claims and preserves investigator unknowns', () => {
+    const findings = completeFindings(); findings.investigations[0].unknowns=['No historical data'];
+    const report = buildReportData(cleanEvidence(), findings);
+    assert.ok(report.unknowns.some(s => s.includes('No historical data')));
+    assert.ok(!report.keyReasons.some(s => s.includes('matched published') || s.includes('semver')));
+  });
+
+  it('rejects malformed optional files instead of treating them as absent', async () => {
+    await withRun(async dir => {
+      await writeFile(join(dir,'evidence.json'), JSON.stringify(cleanEvidence()));
+      await writeFile(join(dir,'findings.json'), '{bad json');
+      await assert.rejects(generateReport(dir), /findings.json/);
+      await writeFile(join(dir,'findings.json'), JSON.stringify(completeFindings()));
+      await writeFile(join(dir,'decision.json'), '{bad json');
+      await assert.rejects(generateReport(dir), /decision.json/);
+    });
+  });
+
+  it('escapes injected metadata excerpts and excludes unchanged packages from the changed table', () => {
+    const evidence = cleanEvidence();
+    evidence.packages=[{name:'not-changed',location:'node_modules/not-changed',isDirect:true,changeType:'unchanged'}];
+    evidence.observations=[{id:'injection',ruleId:'PROMPT_INJECTION_INDICATOR',severity:'high',explanation:'Untrusted instructions',untrustedExcerpt:'<script>injected()</script>'}];
+    const html=renderHtmlReport(buildReportData(evidence));
+    assert.ok(html.includes('&lt;script&gt;injected()&lt;/script&gt;'));
+    assert.ok(!html.includes('<script>injected()</script>'));
+    assert.ok(html.includes('Changed Dependencies (0 instances)'));
   });
 });

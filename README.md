@@ -4,7 +4,7 @@ A dependency review assistant for the IBM Bob 2.0 hackathon. The planned workflo
 
 ## Current status
 
-Repository setup is complete. The scanner, Bob investigation workflow, reports, and local gate are not implemented yet. GitHub enforcement and signed decisions are optional later extensions.
+The scanner, Bob skill and role instructions, and JSON/HTML report renderer are implemented through roadmap step 10. A real parallel Bob investigation rehearsal is the next step. The human review menu and local gate remain planned; GitHub enforcement and signed decisions are optional later extensions.
 
 ## Development setup
 
@@ -17,7 +17,14 @@ node --version
 npm --version
 ```
 
-The project uses JavaScript ES modules. No package dependencies are declared yet. The `npm run bouncer` and `npm test` scripts are placeholders until the CLI and test files are implemented.
+The project uses JavaScript ES modules and Node built-ins without package dependencies. `npm test` runs the offline regression suite. To include the optional live-registry smoke test, set `BOUNCER_LIVE_TESTS=1` for the test process.
+
+```text
+node src/cli.mjs scan --base fixtures/suspicious/base --head fixtures/suspicious/head --mode fixture --out reports/demo/suspicious-fixture
+node src/cli.mjs report --run reports/demo/suspicious-fixture
+```
+
+The report remains QUARANTINE until all three investigations complete. This is a review recommendation, not gate enforcement. Existing human decisions are shown separately and must match the evidence subject digest. Malformed or stale findings/decisions are rejected. No package scripts are executed.
 
 ## Project structure
 
@@ -40,7 +47,7 @@ Empty folders contain `.gitkeep` placeholders so they are retained when the repo
 
 ## Next step
 
-Use Bob Plan mode to define the architecture, data contracts, and implementation checklist. Then build the lockfile comparator and evidence collection before adding the investigators, local review menu, and gate.
+In Bob IDE, run the investigation skill against a demo evidence bundle using actual parallel subagents and capture task-session summaries. Then regenerate the report from the resulting `findings.json`. Implement the human review menu and gate after that rehearsal.
 
 ## Evidence and credentials
 

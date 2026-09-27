@@ -24,7 +24,7 @@
     h1 { font-size: 1.75rem; font-weight: 700; color: var(--text); }
     .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
     .meta-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    
+
     .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .badge-allow { background: rgba(16, 185, 129, 0.2); color: var(--accent-allow); border: 1px solid var(--accent-allow); }
     .badge-quarantine { background: rgba(245, 158, 11, 0.2); color: var(--accent-quarantine); border: 1px solid var(--accent-quarantine); }
@@ -45,7 +45,7 @@
     .verdict-tag.ALLOW { background: var(--accent-allow); color: #000; }
     .verdict-tag.QUARANTINE { background: var(--accent-quarantine); color: #000; }
     .verdict-tag.BLOCK { background: var(--accent-block); color: #fff; }
-    
+
     .reasons-box h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text); }
     .reasons-box ul { margin-left: 1.25rem; font-size: 0.95rem; color: var(--text-muted); }
     .reasons-box li { margin-bottom: 0.25rem; }
@@ -57,7 +57,7 @@
     th { text-align: left; padding: 0.75rem; border-bottom: 2px solid var(--surface-border); color: var(--text-muted); }
     td { padding: 0.75rem; border-bottom: 1px solid var(--surface-border); }
     tr:last-child td { border-bottom: none; }
-    
+
     .card-item { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid var(--text-muted); }
     .card-item.sev-critical { border-left-color: var(--accent-block); }
     .card-item.sev-high { border-left-color: #f97316; }
@@ -65,7 +65,8 @@
     .item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
     .code-snippet { background: #000; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.8rem; overflow-x: auto; margin-top: 0.5rem; color: #a5f3fc; }
     .code-mono { font-family: monospace; font-size: 0.8rem; }
-    
+    code { overflow-wrap: anywhere; }
+
     .investigators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
     .investigator-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--surface-border); border-radius: 0.5rem; padding: 1rem; }
     .inv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.5rem; }
@@ -84,32 +85,31 @@
     <header>
       <div>
         <h1>Supply Chain Bouncer &mdash; Dependency Review</h1>
-        <p class="subtitle">Run ID: <code>run-1790507866975-inyhaf</code> &bull; Subject: <code>098de04af3cff188...</code></p>
+        <p class="subtitle">Run ID: <code>run-1790510569512-zdvxxf</code> &bull; Subject: <code>098de04af3cff188...</code></p>
       </div>
       <div class="meta-badges">
-        <span class="badge badge-allow">ALLOW</span>
+        <span class="badge badge-quarantine">QUARANTINE</span>
         <span class="badge badge-change">MODE: LIVE</span>
         <span class="badge badge-change">STATUS: COMPLETE</span>
       </div>
     </header>
 
     <!-- 1. Recommendation & Top 3 Key Reasons -->
-    <div class="banner ALLOW">
-      <div class="verdict-tag ALLOW">
-        ALLOW
+    <div class="banner QUARANTINE">
+      <div class="verdict-tag QUARANTINE">
+        QUARANTINE
       </div>
       <div class="reasons-box">
         <h3>Top Findings &amp; Recommendation Rationale</h3>
-        <ul><li>No suspicious lifecycle scripts, network operations, or process calls detected.</li><li>All downloaded artifact bytes matched published registry and lockfile integrity.</li><li>Package version bump follows standard semver progression without typosquat flags.</li></ul>
+        <ul><li>All three Bob investigations must complete before an ALLOW recommendation.</li><li>No static observations were recorded in this evidence bundle.</li><li>See the source records for collected evidence; an absence of findings is not a guarantee of safety.</li></ul>
       </div>
     </div>
 
     <!-- 2. Human Review & Decision Mechanism -->
     <section class="section">
       <h2>1. Human Review Decision Status</h2>
-      <p><strong>Current State:</strong> <span class="badge badge-allow">Awaiting human review</span></p>
-      <p class="text-muted" style="margin-top: 0.5rem;">To record an approved, quarantined, or blocked human decision against this exact input snapshot, run the review command in your terminal:</p>
-      <div class="terminal-box">node src/cli.mjs review --run &quot;E:\ibm hackathon project\supply-chain-bouncer\reports\demo\live-benign&quot; --interactive --mode trusted-local-demo</div>
+      <p><strong>Current State:</strong> <span class="badge badge-quarantine">Awaiting complete Bob investigations</span></p>
+      <p class="text-muted" style="margin-top: 0.5rem;">This report is advisory. Human review and gate enforcement are not implemented yet. No installation or merge is authorized by this report.</p>
     </section>
 
     <!-- 3. Packages Table -->
@@ -140,7 +140,7 @@
         <td>2020-12-08 (6 maintainers)</td>
         <td><code class="code-mono">sha512-6FlzubTLZG3J2a/NV...</code></td>
       </tr>
-    
+
       <tr>
         <td><strong>picocolors</strong></td>
         <td><span class="badge badge-change">ADDED</span></td>
@@ -156,26 +156,27 @@
       </div>
     </section>
 
-    <!-- 4. Investigator Results -->
-    
-      <section class="section">
-        <h2>4. Bob Investigator Results</h2>
-        <div class="callout callout-info">
-          <p><strong>Awaiting Bob Agent Review:</strong> Run the <code>supply-chain-bouncer</code> skill in Bob IDE against this evidence bundle to coordinate the Typosquat Detective, Provenance Auditor, and Behavior Analyst.</p>
-        </div>
-      </section>
-    
-
     <!-- 5. Static Observations & Cited Evidence -->
     <section class="section">
       <h2>3. Deterministic Static Observations (0)</h2>
       <div><p class="text-muted">Zero suspicious static patterns or integrity mismatches observed.</p></div>
     </section>
 
+
+      <section class="section">
+        <h2>4. Bob Investigator Results</h2>
+        <div class="callout callout-info">
+          <p><strong>Awaiting Bob Agent Review:</strong> Run the <code>supply-chain-bouncer</code> skill in Bob IDE against this evidence bundle to coordinate the Typosquat Detective, Provenance Auditor, and Behavior Analyst.</p>
+        </div>
+      </section>
+
+
     <!-- 6. Unknowns & Coverage Limitations -->
     <section class="section">
       <h2>5. Coverage Limits &amp; Explicit Unknowns</h2>
-      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;"><li>Runtime dynamic effects were not executed or observed.</li><li>Full cryptographic npm provenance was not verified (adapter extension pending).</li></ul>
+      <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem;"><li>Runtime dynamic effects were not executed or observed.</li><li>Full cryptographic npm provenance was not verified (adapter extension pending).</li><li>Missing Bob investigation: typosquat-detective</li><li>Missing Bob investigation: provenance-auditor</li><li>Missing Bob investigation: behavior-analyst</li></ul>
+      <h3 style="margin-top: 1rem;">Evidence sources</h3>
+      <ul style="margin-left: 1.25rem;"><li><strong>live</strong>: <code>https://registry.npmjs.org/ms/-/ms-2.1.3.tgz</code><br><code>sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==</code></li><li><strong>live</strong>: <code>https://registry.npmjs.org/ms</code><br><code>sha256-metadata:a594a3e5b5e1adc7c4453ea84815f1d2c275de380ac24303000c439f55aabb60</code></li><li><strong>live</strong>: <code>https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz</code><br><code>sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==</code></li><li><strong>live</strong>: <code>https://registry.npmjs.org/picocolors</code><br><code>sha256-metadata:6d25362e0a56809b0bd10cabc19426363c8f9f10883c4b0d4242c7d8e0767ad9</code></li></ul>
     </section>
 
     <!-- 7. Remediation Guidance -->
@@ -187,7 +188,7 @@
       <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
         <li><strong>Replace:</strong> Ask Bob to recommend a reviewed alternative package with matching functionality.</li>
         <li><strong>Rollback:</strong> Remove the dependency declaration and revert lockfile changes with scripts disabled.</li>
-        <li><strong>Approve with Rationale:</strong> If the lifecycle script or observation is expected (e.g. native compilation), record an ALLOW decision citing the benign explanation.</li>
+        <li><strong>Review with Rationale:</strong> Document any benign explanation. Missing evidence and integrity violations must be resolved before approval.</li>
       </ul>
     </section>
   </div>

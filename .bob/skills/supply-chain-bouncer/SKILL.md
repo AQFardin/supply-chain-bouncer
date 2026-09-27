@@ -98,8 +98,13 @@ Wait for all three subagents to return their JSON objects. For each:
 3. Verify `role` matches the assigned role string.
 4. Verify `status` is one of `complete`, `incomplete`, `failed`.
 5. Verify `recommendation` is one of `ALLOW`, `QUARANTINE`, `BLOCK`.
-6. Verify `findings` is a non-empty array.
+6. Verify `findings` is an array with evidence-backed entries for added/changed packages.
+   An empty array is valid when there are no added/changed packages, or when a failed
+   role has no supported findings. Never invent observations to fill the array.
 7. Verify `unknowns` is present.
+8. Validate the full investigator schema, including nested findings. Cite only actual
+   observation IDs, `evidence.packages[<location>]`, or `evidence.sources[<index>]`.
+9. Require exactly one output per role. Preserve failed/incomplete status explicitly.
 
 If any subagent output fails validation, mark that role as `status: "failed"` and
 treat its recommendation as `"QUARANTINE"`.
@@ -108,6 +113,10 @@ treat its recommendation as `"QUARANTINE"`.
 
 Write a file named `findings.json` to the same directory as the evidence bundle
 (e.g. `reports/demo/suspicious-fixture/findings.json`) with this structure:
+
+The wrapper must match `schemas/findings.schema.json`. Each investigation must also
+match `schemas/investigation.schema.json`. If native parallel spawning is unavailable,
+report that limitation; do not simulate subagent execution or fabricate results.
 
 ```json
 {

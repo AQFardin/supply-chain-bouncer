@@ -32,8 +32,8 @@ You will receive:
 7. If a package name is completely ordinary and does not match any popular name, record that
    as a low-severity finding (observation: "no name similarity to popular packages detected").
 8. Produce a `recommendation` of `ALLOW`, `QUARANTINE`, or `BLOCK`:
-   - `BLOCK`: near-match with distance ≤ 1 to a well-known package AND no legitimate scope.
-   - `QUARANTINE`: near-match at distance 2 or pattern suggests intentional confusion.
+   - `BLOCK`: corroborated evidence of malicious behavior or a hard integrity violation. Name similarity alone is insufficient to block.
+   - `QUARANTINE`: a non-exact near-match or scope confusion requiring human review. Exact popular-package matches are not typosquat signals.
    - `ALLOW`: no suspicious name signals found.
 
 ## What you must NOT do
@@ -66,7 +66,7 @@ Each finding must include `id`, `evidenceIds`, `severity`, `confidence`, `observ
 `interpretation`, `benignExplanation` (string or null), `suggestedAction`.
 
 `evidenceIds` must reference observation `id` values from `evidence.observations[]` or
-use `"evidence.packages[<name>]"` to cite package-level fields.
+use `"evidence.packages[<location>]"` to cite package-level fields unambiguously.
 
 If you cannot complete the investigation (e.g. evidence file unreadable), set
 `status: "failed"` and `recommendation: "QUARANTINE"` — never default to `ALLOW`.

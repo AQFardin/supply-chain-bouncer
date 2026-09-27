@@ -45,6 +45,11 @@ export async function main(argv = process.argv.slice(2)) {
     const headDir = parsed.values.head;
     const outDir = parsed.values.out;
     const mode = parsed.values.mode || 'live';
+    if (!['live', 'fixture'].includes(mode)) {
+      console.error('Error: --mode must be live or fixture.');
+      process.exitCode = 1;
+      return;
+    }
 
     if (!baseDir || !headDir) {
       console.error('Error: --base and --head directories are required for "scan".');
@@ -129,7 +134,7 @@ export async function main(argv = process.argv.slice(2)) {
       console.log(`JSON Report:            ${result.reportJsonPath}`);
       console.log(`HTML Report:            ${result.reportHtmlPath}`);
       console.log('----------------------------------------------------');
-      console.log(`To record a human decision, run:\n  ${result.reportData.reviewCommand}`);
+      console.log('Human review and gate enforcement are planned for the next phase. This report does not authorize installation or merge.');
     } catch (err) {
       console.error(`Report generation failed: ${err.message}`);
       process.exit(3);

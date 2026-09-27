@@ -1,15 +1,15 @@
 {
   "schemaVersion": "1.0",
-  "runId": "run-1790507866975-inyhaf",
+  "runId": "run-1790510569512-zdvxxf",
   "subjectDigest": "098de04af3cff188ca0c8e488678471ee3575a8e94cc76c5c95ee8c7d5de7c28",
-  "generatedAt": "2026-09-27T11:37:51.969Z",
+  "generatedAt": "2026-09-27T12:03:17.712Z",
   "mode": "live",
   "collectionStatus": "complete",
-  "overallRecommendation": "ALLOW",
+  "overallRecommendation": "QUARANTINE",
   "keyReasons": [
-    "No suspicious lifecycle scripts, network operations, or process calls detected.",
-    "All downloaded artifact bytes matched published registry and lockfile integrity.",
-    "Package version bump follows standard semver progression without typosquat flags."
+    "All three Bob investigations must complete before an ALLOW recommendation.",
+    "No static observations were recorded in this evidence bundle.",
+    "See the source records for collected evidence; an absence of findings is not a guarantee of safety."
   ],
   "packages": [
     {
@@ -36,7 +36,7 @@
         "publishedAt": "2020-12-08T13:54:35.223Z",
         "maintainersCount": 6,
         "repositoryUrl": "git+https://github.com/vercel/ms.git",
-        "hasAttestation": true,
+        "hasAttestation": false,
         "tarballUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
         "isSynthetic": false
       }
@@ -61,19 +61,49 @@
         "publishedAt": "2024-10-16T18:20:03.921Z",
         "maintainersCount": 1,
         "repositoryUrl": "git+https://github.com/alexeyraspopov/picocolors.git",
-        "hasAttestation": true,
+        "hasAttestation": false,
         "tarballUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
         "isSynthetic": false
       }
     }
   ],
   "investigations": null,
+  "investigationComplete": false,
   "observations": [],
+  "sources": [
+    {
+      "sourceType": "live",
+      "pathOrUrl": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "retrievalTime": "2026-09-27T12:02:49.637Z",
+      "contentDigest": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
+    },
+    {
+      "sourceType": "live",
+      "pathOrUrl": "https://registry.npmjs.org/ms",
+      "retrievalTime": "2026-09-27T12:02:49.638Z",
+      "contentDigest": "sha256-metadata:a594a3e5b5e1adc7c4453ea84815f1d2c275de380ac24303000c439f55aabb60"
+    },
+    {
+      "sourceType": "live",
+      "pathOrUrl": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+      "retrievalTime": "2026-09-27T12:02:49.704Z",
+      "contentDigest": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
+    },
+    {
+      "sourceType": "live",
+      "pathOrUrl": "https://registry.npmjs.org/picocolors",
+      "retrievalTime": "2026-09-27T12:02:49.704Z",
+      "contentDigest": "sha256-metadata:6d25362e0a56809b0bd10cabc19426363c8f9f10883c4b0d4242c7d8e0767ad9"
+    }
+  ],
   "unknowns": [
     "Runtime dynamic effects were not executed or observed.",
-    "Full cryptographic npm provenance was not verified (adapter extension pending)."
+    "Full cryptographic npm provenance was not verified (adapter extension pending).",
+    "Missing Bob investigation: typosquat-detective",
+    "Missing Bob investigation: provenance-auditor",
+    "Missing Bob investigation: behavior-analyst"
   ],
-  "reviewStatus": "Awaiting human review",
-  "reviewCommand": "node src/cli.mjs review --run \"E:\\ibm hackathon project\\supply-chain-bouncer\\reports\\demo\\live-benign\" --interactive --mode trusted-local-demo",
+  "reviewStatus": "Awaiting complete Bob investigations",
+  "reviewCommand": null,
   "decision": null
 }

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CombinedInvestigations",
+  "type": "object",
+  "required": ["schemaVersion", "subjectDigest", "investigations"],
+  "properties": {
+    "schemaVersion": { "type": "string", "enum": ["1.0"] },
+    "subjectDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "evidencePath": { "type": "string" },
+    "generatedAt": { "type": "string" },
+    "investigations": { "type": "array", "items": { "type": "object" } },
+    "aggregateRecommendation": { "type": "string", "enum": ["ALLOW", "QUARANTINE", "BLOCK"] },
+    "investigationComplete": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}
